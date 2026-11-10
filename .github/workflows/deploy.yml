@@ -36,6 +36,8 @@ jobs:
           protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           server-dir: ${{ vars.FTP_DIR || secrets.FTP_DIR }}
           local-dir: ./deploy/
+          # Variable FTP_LOG_LEVEL=verbose para diagnosticar problemas de conexión
+          log-level: ${{ vars.FTP_LOG_LEVEL || 'standard' }}
           # Nunca tocar en el servidor: secretos, archivos subidos por usuarios y logs
           exclude: |
             **/.git*
