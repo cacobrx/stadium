@@ -1,0 +1,4490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stadium Deportes — Consola de Pruebas de API</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg-base: #0b0f17;
+            --bg-surface: #111827;
+            --bg-card: #182234;
+            --bg-card-hover: #1f2d45;
+            --bg-input: #0e1524;
+            --border-color: #243247;
+            --border-focus: #3b82f6;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #ef4444;
+            --accent-purple: #8b5cf6;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --font-code: 'Fira Code', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.45);
+            --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- TOP NAVBAR --- */
+        .navbar {
+            height: 64px;
+            background: linear-gradient(180deg, #131d2e 0%, #0e1624 100%);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: #fff;
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+        }
+
+        .brand-text h1 {
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text .badge-api {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-left: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            text-transform: uppercase;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .env-selector {
+            display: flex;
+            align-items: center;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 4px 8px;
+            gap: 6px;
+        }
+
+        .env-selector label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        select, option {
+            color-scheme: dark;
+        }
+
+        select option {
+            background-color: #111827;
+            color: #f8fafc;
+        }
+
+        .env-selector select {
+            background-color: #1a2436;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: #f8fafc;
+            font-family: var(--font-ui);
+            font-size: 0.82rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .env-selector select:hover,
+        .env-selector select:focus {
+            border-color: var(--accent-blue);
+            background-color: #223147;
+        }
+
+        .env-selector select option {
+            background-color: #111827;
+            color: #f8fafc;
+            padding: 8px 10px;
+        }
+
+        .env-selector input {
+            background: transparent;
+            border: none;
+            width: 220px;
+            border-left: 1px solid var(--border-color);
+            padding-left: 8px;
+            cursor: text;
+            color: #60a5fa;
+            font-family: var(--font-code);
+            font-size: 0.78rem;
+            outline: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #3b82f6;
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #ffffff;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-dim);
+        }
+        .status-pill.active .status-dot {
+            background: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
+        }
+        .status-pill.inactive .status-dot {
+            background: var(--accent-rose);
+        }
+
+        /* --- MAIN CONTAINER --- */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 360px;
+            background: #0f1622;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .sidebar-search {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: #0c121d;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            color: var(--text-dim);
+            pointer-events: none;
+            font-size: 0.85rem;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px 8px 32px;
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            font-size: 0.82rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 10px 14px;
+            background: #0c121d;
+            border-bottom: 1px solid var(--border-color);
+            scrollbar-width: thin;
+        }
+        .category-tabs::-webkit-scrollbar {
+            height: 3px;
+        }
+        .category-tabs::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+        }
+
+        .cat-chip {
+            padding: 4px 9px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: var(--bg-surface);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .cat-chip:hover {
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .cat-chip.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border-color: #3b82f6;
+        }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 10px;
+            scrollbar-width: thin;
+        }
+        .sidebar-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-list::-webkit-scrollbar-thumb {
+            background: #1f2b3e;
+            border-radius: 4px;
+        }
+
+        .group-header {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 10px 8px 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .endpoint-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .endpoint-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .endpoint-item.active {
+            background: #192538;
+            border-color: #2b4368;
+            box-shadow: inset 3px 0 0 #3b82f6;
+        }
+
+        .ep-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .method-badge {
+            font-family: var(--font-code);
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            min-width: 44px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        .method-get {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .method-post {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .method-put {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .method-delete {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .ep-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ep-path {
+            font-family: var(--font-code);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            padding-left: 52px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ep-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-left: 52px;
+        }
+        .auth-tag {
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        .auth-public {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+        .auth-admin {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c084fc;
+        }
+        .auth-bearer {
+            background: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
+        }
+
+        .sidebar-footer {
+            padding: 10px 14px;
+            background: #090e17;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* --- WORKSPACE CONTENT (MIDDLE + RIGHT) --- */
+        .workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background: var(--bg-base);
+        }
+
+        /* REQUEST PANEL */
+        .request-panel {
+            flex: 1;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 480px;
+        }
+
+        .request-header {
+            padding: 16px 20px;
+            background: #111a27;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .url-bar-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .method-select {
+            color-scheme: dark;
+            background: #182436;
+            color: #60a5fa;
+            border: 1px solid var(--border-color);
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .url-input-wrapper {
+            flex: 1;
+            display: flex;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0 12px;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+        .url-input-wrapper:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .url-base-prefix {
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .url-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #38bdf8;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            padding: 9px 0;
+            outline: none;
+        }
+
+        .btn-send {
+            padding: 9px 20px;
+            font-size: 0.88rem;
+            letter-spacing: 0.3px;
+        }
+
+        .ep-info-box {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+        }
+
+        .ep-info-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ep-info-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .ep-info-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* TABS INSIDE REQUEST BUILDER */
+        .tab-bar {
+            display: flex;
+            background: #0f1622;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 16px;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-family: var(--font-ui);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-count {
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            color: var(--text-dim);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: none;
+        }
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* PARAMS / HEADERS TABLE */
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .param-table th {
+            text-align: left;
+            padding: 8px 10px;
+            color: var(--text-dim);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+        .param-table td {
+            padding: 6px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .param-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            outline: none;
+        }
+        .param-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .btn-icon:hover {
+            color: var(--accent-rose);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* BODY EDITOR */
+        .body-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .radio-label input:checked + span {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .code-editor-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #090e17;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .code-textarea {
+            flex: 1;
+            min-height: 260px;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            font-family: var(--font-code);
+            font-size: 0.84rem;
+            line-height: 1.5;
+            padding: 14px;
+            outline: none;
+            resize: none;
+            white-space: pre;
+            tab-size: 2;
+        }
+
+        .editor-footer {
+            padding: 6px 12px;
+            background: #0c121d;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+        }
+
+        /* RESPONSE PANEL */
+        .response-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #0d121c;
+            min-width: 480px;
+        }
+
+        .response-header {
+            padding: 14px 20px;
+            background: #111824;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .response-status-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            font-family: var(--font-code);
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+        }
+        .status-2xx {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .status-4xx {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+        .status-5xx {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        .status-idle {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-dim);
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-stat {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-family: var(--font-code);
+        }
+
+        .response-body-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            font-family: var(--font-code);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            background: #090e17;
+            position: relative;
+        }
+
+        .json-viewer pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* JSON HIGHLIGHT COLORS */
+        .json-key { color: #7dd3fc; font-weight: 600; }
+        .json-string { color: #86efac; }
+        .json-number { color: #fca5a5; }
+        .json-boolean { color: #fde047; font-weight: 600; }
+        .json-null { color: #cbd5e1; font-style: italic; }
+
+        /* PREVIEW CARDS (MercadoPago / Images) */
+        .preview-card {
+            margin-top: 14px;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-card-title {
+            font-family: var(--font-heading);
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mp-box {
+            border-left: 4px solid #009ee3;
+            background: rgba(0, 158, 227, 0.08);
+        }
+
+        .img-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .img-thumb {
+            width: 100%;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #111;
+        }
+
+        /* BOTTOM DRAWER / HISTORY */
+        .bottom-drawer {
+            height: 38px;
+            background: #0a0f18;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: height 0.25s ease;
+            flex-shrink: 0;
+            z-index: 40;
+        }
+        .bottom-drawer.expanded {
+            height: 240px;
+        }
+
+        .drawer-bar {
+            height: 38px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            background: #0d1420;
+        }
+
+        .drawer-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 16px;
+            font-size: 0.78rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #141d2c;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 520px;
+            max-width: 90vw;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #101824;
+        }
+        .modal-header h3 {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            background: #0d1420;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .form-control {
+            color-scheme: dark;
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .form-control:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            right: 24px;
+            background: #1e293b;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            font-size: 0.82rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 200;
+        }
+        .toast.show {
+            display: flex;
+            animation: toastIn 0.25s ease-out;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HEALTH CHECK RUNNER MODAL */
+        .health-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVBAR -->
+    <header class="navbar">
+        <div class="brand">
+            <div class="brand-logo">S</div>
+            <div class="brand-text">
+                <h1>Stadium Deportes <span class="badge-api">API Console</span></h1>
+            </div>
+        </div>
+
+        <div class="nav-controls">
+            <!-- Selector de Entorno / Base URL -->
+            <div class="env-selector">
+                <label>Base URL:</label>
+                <select id="envPreset" onchange="changeEnvPreset()">
+                    <option value="auto">Auto (Relativa ./)</option>
+                    <option value="local">Localhost (http://localhost/stadium/api/)</option>
+                    <option value="remote">Producción (stadium.planbsistemas.com.ar)</option>
+                    <option value="custom">Personalizada</option>
+                </select>
+                <input type="text" id="baseUrlInput" value="./" placeholder="https://..." onchange="updateBaseUrl()">
+            </div>
+
+            <!-- Health check rápido -->
+            <button class="btn btn-outline btn-sm" onclick="openHealthCheckModal()" title="Verificar estado de los endpoints públicos">
+                ⚡ Health Check
+            </button>
+
+            <!-- Admin Session Pill -->
+            <div class="status-pill" id="adminSessionPill" onclick="openAdminModal()" title="Estado de la sesión administrativa (PHP session cookie)">
+                <span class="status-dot"></span>
+                <span id="adminSessionText">Admin: No iniciado</span>
+            </div>
+
+            <!-- Client Token Pill -->
+            <div class="status-pill" id="clientTokenPill" onclick="openTokenModal()" title="Bearer Token para endpoints de clientes">
+                <span class="status-dot"></span>
+                <span id="clientTokenText">Token: 7852...dd4</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP LAYOUT -->
+    <div class="main-layout">
+
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-search">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por ruta, nombre o método... (Ctrl+K)" oninput="filterEndpoints()">
+                </div>
+            </div>
+
+            <!-- Category filter chips -->
+            <div class="category-tabs" id="categoryChips">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- List of Endpoints -->
+            <div class="sidebar-list" id="endpointList">
+                <!-- Grouped items injected via JS -->
+            </div>
+
+            <div class="sidebar-footer">
+                <span style="font-size: 0.72rem; color: var(--text-dim);" id="endpointCounter">67 endpoints</span>
+                <div style="display:flex; gap:6px;">
+                    <a href="cupones/test_cupon.html" target="_blank" class="btn btn-outline btn-sm" title="Test standalone cupones">Cupón UI</a>
+                    <a href="presupuestos/test_crear.html" target="_blank" class="btn btn-outline btn-sm" title="Test standalone presupuestos">Presup. UI</a>
+                    <a href="mercadopago/test.html" target="_blank" class="btn btn-outline btn-sm" title="Test standalone MP">MP UI</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- WORKSPACE (MIDDLE REQUEST BUILDER + RIGHT RESPONSE INSPECTOR) -->
+        <main class="workspace">
+
+            <!-- REQUEST BUILDER -->
+            <section class="request-panel">
+                <div class="request-header">
+                    <div class="url-bar-container">
+                        <select class="method-select" id="reqMethod" onchange="onMethodChange()">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="OPTIONS">OPTIONS</option>
+                        </select>
+                        <div class="url-input-wrapper">
+                            <span class="url-base-prefix" id="urlPrefix">./</span>
+                            <input type="text" class="url-input" id="reqPath" value="" placeholder="ruta/del/endpoint.php" oninput="onPathInput()">
+                        </div>
+                        <button class="btn btn-primary btn-send" id="btnSend" onclick="sendRequest()">
+                            <span id="btnSendText">▶ Enviar</span>
+                        </button>
+                    </div>
+
+                    <!-- Endpoint Info Header -->
+                    <div class="ep-info-box">
+                        <div>
+                            <div class="ep-info-title">
+                                <span id="infoTitle">Selecciona un endpoint</span>
+                                <span id="infoAuthBadge" class="auth-tag auth-public">Pública</span>
+                            </div>
+                            <div class="ep-info-desc" id="infoDesc">
+                                Haz clic en cualquier endpoint del panel izquierdo para cargar sus parámetros y ejemplos de prueba.
+                            </div>
+                        </div>
+                        <div class="ep-info-actions">
+                            <button class="btn btn-outline btn-sm" onclick="copyCurl()" title="Copiar comando cURL al portapapeles">
+                                📋 cURL
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="resetActiveEndpoint()" title="Restablecer valores por defecto">
+                                ↺ Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REQUEST CONFIGURATION TABS -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="tabParams" onclick="switchReqTab('tabParams')">
+                        Parámetros URL <span class="tab-count" id="paramsCountBadge">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tabHeaders" onclick="switchReqTab('tabHeaders')">
+                        Encabezados <span class="tab-count" id="headersCountBadge">2</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tabBody" onclick="switchReqTab('tabBody')">
+                        Cuerpo (Body) <span class="tab-count" id="bodyIndicatorBadge">—</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: PARAMS -->
+                <div class="tab-content active" id="tabParams">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; font-weight:600;">Query Parameters (GET)</span>
+                        <button class="btn btn-outline btn-sm" onclick="addParamRow('', '', true, '')">+ Agregar Parámetro</button>
+                    </div>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th style="width:36px;">✓</th>
+                                <th style="width:160px;">Clave</th>
+                                <th>Valor</th>
+                                <th style="width:180px;">Descripción</th>
+                                <th style="width:36px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="paramsTableBody">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- TAB 2: HEADERS -->
+                <div class="tab-content" id="tabHeaders">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; font-weight:600;">Request Headers</span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label class="radio-label" title="Incluir cookies de sesión (para endpoints admin)">
+                                <input type="checkbox" id="headerWithCredentials" checked>
+                                <span>credentials: 'include' (Cookies)</span>
+                            </label>
+                            <button class="btn btn-outline btn-sm" onclick="addHeaderRow('', '', true)">+ Agregar Header</button>
+                        </div>
+                    </div>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th style="width:36px;">✓</th>
+                                <th style="width:180px;">Header</th>
+                                <th>Valor</th>
+                                <th style="width:36px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="headersTableBody">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- TAB 3: BODY -->
+                <div class="tab-content" id="tabBody">
+                    <div class="body-controls">
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="bodyTypeRadio" value="none" onchange="onBodyTypeChange('none')">
+                                <span>Ninguno</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="bodyTypeRadio" value="json" checked onchange="onBodyTypeChange('json')">
+                                <span>JSON (application/json)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="bodyTypeRadio" value="form" onchange="onBodyTypeChange('form')">
+                                <span>Multipart / Form Data</span>
+                            </label>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-outline btn-sm" onclick="formatJsonBody()">Formatear JSON</button>
+                            <button class="btn btn-outline btn-sm" onclick="minifyJsonBody()">Minificar</button>
+                            <button class="btn btn-outline btn-sm" onclick="clearJsonBody()">Limpiar</button>
+                        </div>
+                    </div>
+
+                    <div id="jsonEditorSection" class="code-editor-wrapper">
+                        <textarea id="bodyJsonInput" class="code-textarea" spellcheck="false" placeholder="{\n  \"clave\": \"valor\"\n}" oninput="validateJsonInput()"></textarea>
+                        <div class="editor-footer">
+                            <span id="jsonValidationMsg">JSON válido</span>
+                            <span id="jsonCharCount">0 caracteres</span>
+                        </div>
+                    </div>
+
+                    <!-- Multipart File upload section -->
+                    <div id="formEditorSection" style="display:none; flex-direction:column; gap:12px; margin-top:10px;">
+                        <div style="background:var(--bg-input); padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                            <label class="form-label">Seleccionar archivo para 'imagen' (ej: upload_imagen.php):</label>
+                            <input type="file" id="fileUploadInput" class="form-control" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Campo 'carpeta' (opcional):</label>
+                            <input type="text" id="formFolderInput" class="form-control" value="productos">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESPONSE INSPECTOR -->
+            <section class="response-panel">
+                <div class="response-header">
+                    <div class="response-status-group">
+                        <span class="status-badge status-idle" id="respStatusBadge">Esperando</span>
+                        <span class="meta-stat" id="respTime">0 ms</span>
+                        <span class="meta-stat" id="respSize">0 KB</span>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-outline btn-sm" onclick="copyResponse()" title="Copiar respuesta al portapapeles">
+                            📋 Copiar
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="downloadResponse()" title="Descargar como archivo JSON">
+                            💾 Descargar
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="clearResponse()" title="Limpiar resultado">
+                            ✕ Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="tabRespJson" onclick="switchRespTab('tabRespJson')">Respuesta Formateada</button>
+                    <button class="tab-btn" data-tab="tabRespRaw" onclick="switchRespTab('tabRespRaw')">Texto Raw</button>
+                    <button class="tab-btn" data-tab="tabRespHeaders" onclick="switchRespTab('tabRespHeaders')">Headers Recibidos</button>
+                    <button class="tab-btn" data-tab="tabRespPreview" id="previewTabBtn" onclick="switchRespTab('tabRespPreview')">Vista Previa / UI</button>
+                </div>
+
+                <!-- RESP TABS -->
+                <div class="response-body-area tab-resp-content active" id="tabRespJson">
+                    <div class="json-viewer" id="jsonViewerContent">
+                        <span style="color:var(--text-dim);">Haz clic en "▶ Enviar" o presiona <kbd style="background:#222; padding:2px 6px; border-radius:3px;">Ctrl+Enter</kbd> para ejecutar la petición...</span>
+                    </div>
+                </div>
+
+                <div class="response-body-area tab-resp-content" id="tabRespRaw" style="display:none;">
+                    <pre id="rawContent" style="white-space:pre-wrap; word-break:break-all;"></pre>
+                </div>
+
+                <div class="response-body-area tab-resp-content" id="tabRespHeaders" style="display:none;">
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Header</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="respHeadersTableBody">
+                            <tr><td colspan="2" style="color:var(--text-dim); text-align:center;">No hay headers disponibles</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="response-body-area tab-resp-content" id="tabRespPreview" style="display:none;">
+                    <div id="previewContainer">
+                        <span style="color:var(--text-dim);">No hay vista previa disponible para la última respuesta.</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- BOTTOM DRAWER: HISTORIAL -->
+    <footer class="bottom-drawer" id="bottomDrawer">
+        <div class="drawer-bar" onclick="toggleHistoryDrawer()">
+            <div class="drawer-title">
+                <span>⏱ Historial de Ejecuciones</span>
+                <span class="tab-count" id="historyCounter">0</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); clearHistory()">Limpiar Historial</button>
+                <span id="drawerToggleIcon" style="font-size:0.8rem; color:var(--text-dim);">▲</span>
+            </div>
+        </div>
+        <div class="history-list" id="historyList">
+            <div style="color:var(--text-dim); text-align:center; padding:12px;">El historial de peticiones aparecerá aquí...</div>
+        </div>
+    </footer>
+
+    <!-- MODAL: LOGIN ADMIN -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>🔐 Iniciar Sesión de Administrador</h3>
+                <button class="btn-icon" onclick="closeAdminModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
+                    Inicia sesión en <code>api/login.php</code> para habilitar las llamadas a endpoints que requieren <code>requireAuthAPI()</code> (Productos, Dashboard, Cupones, Categorías, Facturas, etc.).
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Cuenta preconfigurada:</label>
+                    <select class="form-control" id="modalUserPreset" onchange="onUserPresetChange()">
+                        <option value="gustavo">Gustavo (gustavo.bragagnolo@gmail.com)</option>
+                        <option value="lucas">Lucas (lucasbragagnolo6@gmail.com)</option>
+                        <option value="custom">Personalizado...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" id="modalAdminEmail" class="form-control" value="gustavo.bragagnolo@gmail.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hash MD5 de la contraseña:</label>
+                    <input type="text" id="modalAdminMd5" class="form-control" value="80f1118f636c5b3e986d55af1e74c857" style="font-family:var(--font-code);">
+                </div>
+
+                <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; font-size:0.75rem; color:var(--text-dim);">
+                    ℹ️ Los hashes de prueba corresponden a los usuarios existentes en la base de datos local. Al loguearse, el navegador almacena la cookie de sesión PHP.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAdminModal()">Cancelar</button>
+                <button class="btn btn-primary" id="btnModalLogin" onclick="doAdminLogin()">Iniciar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CLIENT TOKEN -->
+    <div class="modal-overlay" id="tokenModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>🔑 Token Bearer de Cliente</h3>
+                <button class="btn-icon" onclick="closeTokenModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
+                    Este token se adjunta automáticamente en la cabecera <code>Authorization: Bearer &lt;token&gt;</code> para consultar el perfil, pedidos y direcciones de clientes.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Token Actual:</label>
+                    <input type="text" id="modalClientToken" class="form-control" value="7852dff2776d90d6572cae673e9d7dd4" style="font-family:var(--font-code);">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tokens de prueba disponibles:</label>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <button class="btn btn-outline btn-sm" style="text-align:left; justify-content:flex-start;" onclick="setTokenPreset('7852dff2776d90d6572cae673e9d7dd4', 'Gustavo')">
+                            👤 Gustavo: <code>7852dff2776d90d6572cae673e9d7dd4</code>
+                        </button>
+                        <button class="btn btn-outline btn-sm" style="text-align:left; justify-content:flex-start;" onclick="setTokenPreset('9a9e2f4c6d782f43bd210e03f2117ce7', 'Lucas')">
+                            👤 Lucas: <code>9a9e2f4c6d782f43bd210e03f2117ce7</code>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeTokenModal()">Cerrar</button>
+                <button class="btn btn-primary" onclick="saveClientToken()">Guardar Token</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HEALTH CHECK RUNNER -->
+    <div class="modal-overlay" id="healthModal">
+        <div class="modal-box" style="width:620px;">
+            <div class="modal-header">
+                <h3>⚡ Verificación de Salud de Endpoints (Ping)</h3>
+                <button class="btn-icon" onclick="closeHealthCheckModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:12px;">
+                    Ejecuta una batería de peticiones GET sobre los endpoints públicos clave para verificar conectividad y respuesta del servidor.
+                </p>
+                <div id="healthResultsList" style="max-height:280px; overflow-y:auto;">
+                    <!-- Health items injected -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeHealthCheckModal()">Cerrar</button>
+                <button class="btn btn-success" id="btnRunHealth" onclick="runHealthChecks()">Iniciar Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toastNotification">
+        <span id="toastIcon">✓</span>
+        <span id="toastMsg">Mensaje</span>
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. ENDPOINTS CATALOG DEFINITION ---
+        const ALL_ENDPOINTS = [
+  {
+    "id": "auth-login",
+    "category": "auth",
+    "categoryName": "Autenticación & Usuarios",
+    "categoryIcon": "🔐",
+    "name": "Login Administrador (Sesión)",
+    "path": "login.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública (Inicia Sesión Admin)",
+    "description": "Inicia sesión administrativa en el sistema generando la cookie de sesión PHP necesaria para endpoints protegidos.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "email": "gustavo.bragagnolo@gmail.com",
+      "passwordMd5": "80f1118f636c5b3e986d55af1e74c857"
+    },
+    "tips": "Usuarios de prueba: gustavo.bragagnolo@gmail.com, lucasbragagnolo6@gmail.com, usuario@stadium.com.ar"
+  },
+  {
+    "id": "auth-generar",
+    "category": "auth",
+    "categoryName": "Autenticación & Usuarios",
+    "categoryIcon": "🔐",
+    "name": "Generar Código Cliente (Email)",
+    "path": "auth/generar.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Genera un código numérico aleatorio de 6 dígitos con vigencia de 1 hora y lo envía por correo al cliente.",
+    "params": [
+      {
+        "key": "debug",
+        "value": "0",
+        "enabled": false,
+        "desc": "Activar logs SMTP"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "email": "gustavo.bragagnolo@gmail.com"
+    },
+    "tips": "El cliente debe existir previamente en la tabla `clientes`."
+  },
+  {
+    "id": "auth-validar",
+    "category": "auth",
+    "categoryName": "Autenticación & Usuarios",
+    "categoryIcon": "🔐",
+    "name": "Validar Código Cliente (Obtener Token)",
+    "path": "auth/validar.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública (Retorna Token)",
+    "description": "Valida el código de 6 dígitos enviado por email y retorna el token Bearer permanente del cliente con sus direcciones.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "email": "gustavo.bragagnolo@gmail.com",
+      "codigo": "123456"
+    },
+    "tips": "Retorna `data.cliente.token` que se usa en Authorization: Bearer."
+  },
+  {
+    "id": "perfil-datos",
+    "category": "auth",
+    "categoryName": "Autenticación & Usuarios",
+    "categoryIcon": "🔐",
+    "name": "Perfil & Direcciones del Cliente",
+    "path": "perfil/datos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "bearer",
+    "authLabel": "Requiere Bearer Token",
+    "description": "Obtiene la información completa del cliente autenticado, estadísticas de compra y listado de direcciones registradas.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Token demo disponible: 7852dff2776d90d6572cae673e9d7dd4"
+  },
+  {
+    "id": "usuarios-crud",
+    "category": "auth",
+    "categoryName": "Autenticación & Usuarios",
+    "categoryIcon": "🔐",
+    "name": "Usuarios de Gestión (CRUD)",
+    "path": "usuarios.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración de usuarios con acceso al panel de control.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "Filtrar por ID de usuario"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Operador Demo",
+      "email": "operador@stadium.com.ar",
+      "clave": "d89a3254b70a1955648255034e603d63",
+      "activo": 1
+    },
+    "tips": "Requiere haber iniciado sesión previamente con login.php."
+  },
+  {
+    "id": "productos-formato",
+    "category": "catalogo",
+    "categoryName": "Catálogo de Productos",
+    "categoryIcon": "📦",
+    "name": "Catálogo Público Formateado",
+    "path": "productos-formato.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Lista paginada de productos para el frontend con imágenes, atributos, variantes y cálculo de stock consolidado.",
+    "params": [
+      {
+        "key": "page",
+        "value": "1",
+        "enabled": true,
+        "desc": "Número de página"
+      },
+      {
+        "key": "limit",
+        "value": "12",
+        "enabled": true,
+        "desc": "Cantidad por página (máx 100)"
+      },
+      {
+        "key": "deporte",
+        "value": "2",
+        "enabled": false,
+        "desc": "ID o nombre del deporte"
+      },
+      {
+        "key": "categoria",
+        "value": "pelotas",
+        "enabled": false,
+        "desc": "ID o slug de categoría"
+      },
+      {
+        "key": "marca",
+        "value": "molten",
+        "enabled": false,
+        "desc": "ID o slug de marca"
+      },
+      {
+        "key": "destacado",
+        "value": "1",
+        "enabled": false,
+        "desc": "Solo productos destacados"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Usado por la tienda online para renderizar las grillas de productos."
+  },
+  {
+    "id": "productos-lista-alias",
+    "category": "catalogo",
+    "categoryName": "Catálogo de Productos",
+    "categoryIcon": "📦",
+    "name": "Catálogo Público (Subcarpeta /lista)",
+    "path": "productos/lista.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Endpoint homologado en subcarpeta que provee el catálogo público formateado.",
+    "params": [
+      {
+        "key": "page",
+        "value": "1",
+        "enabled": true,
+        "desc": "Página"
+      },
+      {
+        "key": "limit",
+        "value": "8",
+        "enabled": true,
+        "desc": "Límite"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Misma respuesta que productos-formato.php"
+  },
+  {
+    "id": "productos-cat-principales",
+    "category": "catalogo",
+    "categoryName": "Catálogo de Productos",
+    "categoryIcon": "📦",
+    "name": "Productos en Categorías Principales",
+    "path": "productos/productos_categorias_principales.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Devuelve productos con stock agrupados o filtrados por categorías marcadas como principales para la home.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Optimizado para la portada del sitio web."
+  },
+  {
+    "id": "productos-admin-crud",
+    "category": "catalogo",
+    "categoryName": "Catálogo de Productos",
+    "categoryIcon": "📦",
+    "name": "Productos Admin (CRUD)",
+    "path": "productos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Gestión interna completa de productos: creación, edición, borrado, carga de imágenes y asignación de marcas/categorías.",
+    "params": [
+      {
+        "key": "id",
+        "value": "73",
+        "enabled": false,
+        "desc": "ID de producto individual"
+      },
+      {
+        "key": "limit",
+        "value": "10",
+        "enabled": true,
+        "desc": "Límite de resultados"
+      },
+      {
+        "key": "search",
+        "value": "Aro",
+        "enabled": false,
+        "desc": "Búsqueda por texto"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Aro Stadium Master Pro",
+      "sku": "ST-ARO-PRO-99",
+      "precio": 89000.0,
+      "stock": 10,
+      "marca_id": 12,
+      "deporte_id": 2,
+      "activo": 1,
+      "descripcion": "Aro reglamentario con resorte de alta absorción"
+    },
+    "tips": "Para PUT incluir ?id=X o body con id."
+  },
+  {
+    "id": "articulos-lista",
+    "category": "catalogo",
+    "categoryName": "Catálogo de Productos",
+    "categoryIcon": "📦",
+    "name": "Artículos Activos (Ligero)",
+    "path": "articulos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Endpoint rápido que devuelve solo productos activos con stock para selectores rápidos y cotizadores.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Ideal para comboboxes y selectores en formularios."
+  },
+  {
+    "id": "upload-imagen",
+    "category": "catalogo",
+    "categoryName": "Catálogo de Productos",
+    "categoryIcon": "📦",
+    "name": "Subir Imagen (Conversión WebP)",
+    "path": "upload_imagen.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Recibe un archivo de imagen (JPEG, PNG, GIF), lo redimensiona y lo convierte automáticamente a WebP optimizado.",
+    "params": [],
+    "bodyType": "form",
+    "body": {
+      "carpeta": "productos"
+    },
+    "tips": "Enviar como multipart/form-data con campo 'imagen'."
+  },
+  {
+    "id": "categorias-crud",
+    "category": "taxonomias",
+    "categoryName": "Categorías, Marcas & Deportes",
+    "categoryIcon": "🏷️",
+    "name": "Categorías (CRUD)",
+    "path": "categorias.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración de categorías del catálogo.",
+    "params": [
+      {
+        "key": "id",
+        "value": "11",
+        "enabled": false,
+        "desc": "Filtrar por ID"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Redes y Protecciones",
+      "slug": "redes-y-protecciones",
+      "orden": 5,
+      "activo": 1
+    },
+    "tips": "IDs existentes: 11 (Aros), 12 (Arcos), 13 (Redes), etc."
+  },
+  {
+    "id": "marcas-crud",
+    "category": "taxonomias",
+    "categoryName": "Categorías, Marcas & Deportes",
+    "categoryIcon": "🏷️",
+    "name": "Marcas (CRUD)",
+    "path": "marcas.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración de marcas representadas.",
+    "params": [
+      {
+        "key": "id",
+        "value": "12",
+        "enabled": false,
+        "desc": "Filtrar por ID"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Spalding",
+      "slug": "spalding",
+      "destacado": 1,
+      "activo": 1
+    },
+    "tips": "Marcas existentes: Deporar (12), Donnay (16), Dribbling (7), Molten, etc."
+  },
+  {
+    "id": "marcas-principales",
+    "category": "taxonomias",
+    "categoryName": "Categorías, Marcas & Deportes",
+    "categoryIcon": "🏷️",
+    "name": "Marcas Principales (Home)",
+    "path": "marcas/principales.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Devuelve las marcas marcadas como principales para mostrar sus logos en el carrusel del pie de página.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Ruta pública de solo lectura."
+  },
+  {
+    "id": "deportes-crud",
+    "category": "taxonomias",
+    "categoryName": "Categorías, Marcas & Deportes",
+    "categoryIcon": "🏷️",
+    "name": "Deportes (CRUD)",
+    "path": "deportes.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración de disciplinas deportivas.",
+    "params": [
+      {
+        "key": "id",
+        "value": "2",
+        "enabled": false,
+        "desc": "Filtrar por ID (2 = Básquet)"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Handball",
+      "slug": "handball",
+      "activo": 1
+    },
+    "tips": "Deportes existentes: Atletismo (10), Básquet (2), Fútbol, Vóley, etc."
+  },
+  {
+    "id": "deportes-lista",
+    "category": "taxonomias",
+    "categoryName": "Categorías, Marcas & Deportes",
+    "categoryIcon": "🏷️",
+    "name": "Deportes Públicos (Lista)",
+    "path": "deportes/lista.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Listado público de deportes disponibles con recuento de productos activos.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Utilizado en la navegación del menú principal."
+  },
+  {
+    "id": "colecciones-crud",
+    "category": "taxonomias",
+    "categoryName": "Categorías, Marcas & Deportes",
+    "categoryIcon": "🏷️",
+    "name": "Colecciones (CRUD)",
+    "path": "colecciones.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Gestión de colecciones y promociones temáticas de productos.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de colección"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Temporada Clubes 2026",
+      "slug": "temporada-clubes-2026",
+      "descripcion": "Equipamiento para inicio de temporada",
+      "activo": 1
+    },
+    "tips": "Permite agrupar productos bajo una misma campaña."
+  },
+  {
+    "id": "inventario-crud",
+    "category": "stock",
+    "categoryName": "Inventario & Stock",
+    "categoryIcon": "📊",
+    "name": "Variantes de Inventario (CRUD)",
+    "path": "inventario.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Gestión de variantes de producto, stock disponible, precios específicos y atributos combinados (talles, colores, materiales).",
+    "params": [
+      {
+        "key": "producto_id",
+        "value": "73",
+        "enabled": true,
+        "desc": "Filtrar variantes por producto"
+      },
+      {
+        "key": "stock_bajo",
+        "value": "1",
+        "enabled": false,
+        "desc": "Solo variantes con stock bajo (<= 5)"
+      },
+      {
+        "key": "search",
+        "value": "",
+        "enabled": false,
+        "desc": "Búsqueda por SKU o nombre"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "producto_id": 73,
+      "sku_variante": "ARO-DOM-BLANCO",
+      "stock": 8,
+      "precio": 52000.0,
+      "activa": 1,
+      "atributos": [
+        {
+          "nombre": "Color",
+          "valor": "Blanco"
+        }
+      ]
+    },
+    "tips": "PUT acepta { id, stock, precio, activa, atributos }."
+  },
+  {
+    "id": "informe-stock",
+    "category": "stock",
+    "categoryName": "Inventario & Stock",
+    "categoryIcon": "📊",
+    "name": "Informe y Movimientos de Stock",
+    "path": "informe_stock.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Sin parámetros lista las variantes con su stock actual. Con ?variante=ID devuelve el historial completo de compras, ventas y balance acumulado.",
+    "params": [
+      {
+        "key": "variante",
+        "value": "467",
+        "enabled": false,
+        "desc": "ID de variante para ver movimientos (ej: 467)"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Permite auditar entradas vs pedidos y saldo calculado."
+  },
+  {
+    "id": "pedidos-crear",
+    "category": "pedidos",
+    "categoryName": "Pedidos & Checkout",
+    "categoryIcon": "🛒",
+    "name": "Crear Pedido Checkout (MercadoPago)",
+    "path": "pedidos/crear.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Cliente",
+    "description": "Crea el pedido en la base de datos, descuenta stock provisional, y genera la preferencia de MercadoPago retornando init_point y sandbox_init_point.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "modo": "sandbox",
+      "items": [
+        {
+          "id": 73,
+          "sku": "ST10-1903 / STLR-408XU",
+          "cantidad": 1
+        }
+      ],
+      "pagador": {
+        "email": "gustavo.bragagnolo@gmail.com",
+        "nombre": "Gustavo",
+        "apellido": "Bragagnolo",
+        "telefono": "1144556677",
+        "identificacion": {
+          "tipo": "DNI",
+          "numero": "30123456"
+        },
+        "direccion": {
+          "calle": "Av. Corrientes",
+          "numero": 3233,
+          "ciudad": "CABA",
+          "provincia": "Buenos Aires",
+          "codigo_postal": "1000"
+        }
+      },
+      "envio": {
+        "tipo": "sucursal",
+        "costo": 0
+      }
+    },
+    "tips": "Modo puede ser 'sandbox' o 'production'. Devuelve preference_id y link de pago."
+  },
+  {
+    "id": "pedidos-cliente-lista",
+    "category": "pedidos",
+    "categoryName": "Pedidos & Checkout",
+    "categoryIcon": "🛒",
+    "name": "Mis Pedidos (Cliente Autenticado)",
+    "path": "pedidos/lista.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "bearer",
+    "authLabel": "Requiere Bearer Token",
+    "description": "Lista paginada de todos los pedidos realizados por el cliente autenticado.",
+    "params": [
+      {
+        "key": "page",
+        "value": "1",
+        "enabled": true,
+        "desc": "Página"
+      },
+      {
+        "key": "limit",
+        "value": "10",
+        "enabled": true,
+        "desc": "Límite"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Requiere Header Authorization: Bearer <token>"
+  },
+  {
+    "id": "pedidos-detalle",
+    "category": "pedidos",
+    "categoryName": "Pedidos & Checkout",
+    "categoryIcon": "🛒",
+    "name": "Detalle y Seguimiento de Pedido",
+    "path": "pedidos/detalle.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública (por ID)",
+    "description": "Devuelve la información exhaustiva de un pedido: cliente, dirección, estado de pago, tracking y detalle de items.",
+    "params": [
+      {
+        "key": "id",
+        "value": "125",
+        "enabled": true,
+        "desc": "ID del pedido a consultar"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "ID de ejemplo: 125, 124, 3, 4"
+  },
+  {
+    "id": "pedidos-admin-crud",
+    "category": "pedidos",
+    "categoryName": "Pedidos & Checkout",
+    "categoryIcon": "🛒",
+    "name": "Pedidos Admin (CRUD)",
+    "path": "pedidos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Gestión administrativa de pedidos. Permite listar todos los pedidos, consultar por ID o actualizar el estado.",
+    "params": [
+      {
+        "key": "id",
+        "value": "125",
+        "enabled": false,
+        "desc": "ID de pedido"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "estado": 1,
+      "observaciones": "Pedido verificado y preparado para despacho"
+    },
+    "tips": "PUT actualiza el estado del pedido especificado en ?id=X."
+  },
+  {
+    "id": "pedidos-det-items",
+    "category": "pedidos",
+    "categoryName": "Pedidos & Checkout",
+    "categoryIcon": "🛒",
+    "name": "Detalle de Items de Pedido (Líneas)",
+    "path": "pedidos_det.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Obtiene las líneas de producto asociadas a un pedido específico.",
+    "params": [
+      {
+        "key": "idped",
+        "value": "125",
+        "enabled": true,
+        "desc": "ID del pedido"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Join con tabla productos y variantes."
+  },
+  {
+    "id": "pedidos-webhook",
+    "category": "pedidos",
+    "categoryName": "Pedidos & Checkout",
+    "categoryIcon": "🛒",
+    "name": "Webhook Notificaciones MercadoPago",
+    "path": "pedidos/webhook.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública (IPN)",
+    "description": "Endpoint que recibe las notificaciones IPN/Webhook de MercadoPago para registrar automáticamente el pago.",
+    "params": [
+      {
+        "key": "id",
+        "value": "123456789",
+        "enabled": true,
+        "desc": "ID de pago en MP"
+      },
+      {
+        "key": "topic",
+        "value": "payment",
+        "enabled": true,
+        "desc": "Tipo de evento"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "MercadoPago llama a este endpoint tras completarse una transacción."
+  },
+  {
+    "id": "mp-crear-preferencia",
+    "category": "mercadopago",
+    "categoryName": "Mercado Pago",
+    "categoryIcon": "💳",
+    "name": "Crear Preferencia de Pago Directa",
+    "path": "mercadopago/index.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Crea una preferencia de pago directa con el SDK de MercadoPago, admitiendo modo sandbox y producción.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "mode": "sandbox",
+      "items": [
+        {
+          "title": "Aro De Básquet Doméstico",
+          "quantity": 1,
+          "unit_price": 52000.0
+        }
+      ],
+      "payer": {
+        "first_name": "Juan",
+        "last_name": "Pérez",
+        "email": "juan.perez@example.com",
+        "phone": {
+          "area_code": "11",
+          "number": "1533344455"
+        },
+        "identification": {
+          "type": "DNI",
+          "number": "30123456"
+        },
+        "address": {
+          "street_name": "Calle Falsa 123 Buenos Aires"
+        }
+      },
+      "back_urls": {
+        "success": "https://stadiumdeportes.com/pago-exito",
+        "failure": "https://stadiumdeportes.com/pago-fallo",
+        "pending": "https://stadiumdeportes.com/pago-pendiente"
+      }
+    },
+    "tips": "Retorna preference_id e init_point para redirigir al checkout."
+  },
+  {
+    "id": "mp-search-payments",
+    "category": "mercadopago",
+    "categoryName": "Mercado Pago",
+    "categoryIcon": "💳",
+    "name": "Buscar Pagos en Mercado Pago",
+    "path": "mercadopago/search_payments.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Consulta la API oficial de Mercado Pago (/v1/payments/search) filtrando por estado, fecha o referencia externa.",
+    "params": [
+      {
+        "key": "status",
+        "value": "approved",
+        "enabled": true,
+        "desc": "approved, pending, rejected, etc."
+      },
+      {
+        "key": "limit",
+        "value": "5",
+        "enabled": true,
+        "desc": "Cantidad de pagos a recuperar"
+      },
+      {
+        "key": "mode",
+        "value": "sandbox",
+        "enabled": true,
+        "desc": "sandbox o production"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Permite auditar cobros reales o de prueba."
+  },
+  {
+    "id": "mp-vincular-pago",
+    "category": "mercadopago",
+    "categoryName": "Mercado Pago",
+    "categoryIcon": "💳",
+    "name": "Vincular Pago a Pedido & Facturar AFIP",
+    "path": "mercadopago/vincular_pago_pedido.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Vincula manualmente un pago de Mercado Pago a un pedido pendiente, emitiendo factura AFIP y notificando al cliente por email.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "payment_id": "1234567890",
+      "pedido_id": 125
+    },
+    "tips": "Requiere sesión de administrador."
+  },
+  {
+    "id": "correo-token",
+    "category": "correoarg",
+    "categoryName": "Correo Argentino",
+    "categoryIcon": "📬",
+    "name": "Obtener Token de Autenticación",
+    "path": "correoarg/token.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST",
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Solicita un nuevo token de autenticación a la API de Correo Argentino / MiCorreo.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "produccion": 0
+    },
+    "tips": "produccion: 0 (ambiente test) o 1 (producción)."
+  },
+  {
+    "id": "correo-rates",
+    "category": "correoarg",
+    "categoryName": "Correo Argentino",
+    "categoryIcon": "📬",
+    "name": "Cotizar Costos de Envío (Rates)",
+    "path": "correoarg/rates.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Devuelve tarifas oficiales de Correo Argentino (envío a domicilio D o sucursal S) según origen, destino y dimensiones del paquete.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "customerId": "0000550137",
+      "postalCodeOrigin": "1757",
+      "postalCodeDestination": "6720",
+      "deliveredType": "D",
+      "produccion": 0,
+      "dimensions": {
+        "weight": 2500,
+        "height": 30,
+        "width": 40,
+        "length": 50
+      }
+    },
+    "tips": "Peso en gramos (máx 25000), dimensiones en cm (máx 150)."
+  },
+  {
+    "id": "correo-dimensiones",
+    "category": "correoarg",
+    "categoryName": "Correo Argentino",
+    "categoryIcon": "📬",
+    "name": "Calcular Dimensiones de Carrito",
+    "path": "correoarg/dimensiones.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Calcula el volumen y peso consolidado de múltiples items de un carrito. Si se envían códigos postales también realiza la cotización completa.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "items": [
+        {
+          "producto_id": 73,
+          "cantidad": 1
+        }
+      ],
+      "postalCodeOrigin": "1757",
+      "postalCodeDestination": "1000",
+      "produccion": 0
+    },
+    "tips": "Consolida medidas usando estrategia de caja óptima."
+  },
+  {
+    "id": "correo-tracking",
+    "category": "correoarg",
+    "categoryName": "Correo Argentino",
+    "categoryIcon": "📬",
+    "name": "Seguimiento de Envíos (Tracking)",
+    "path": "correoarg/tracking.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Consulta el estado en tránsito de un paquete por ID de pedido o directamente por código de shipping de Correo Argentino.",
+    "params": [
+      {
+        "key": "pedido_id",
+        "value": "125",
+        "enabled": true,
+        "desc": "ID del pedido en la base de datos"
+      },
+      {
+        "key": "produccion",
+        "value": "0",
+        "enabled": false,
+        "desc": "0 = test, 1 = prod"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "También acepta ?shippingId=XXXXX."
+  },
+  {
+    "id": "cupon-validar",
+    "category": "cupones",
+    "categoryName": "Cupones de Descuento",
+    "categoryIcon": "🎟️",
+    "name": "Validar Cupón en Checkout",
+    "path": "cupones/cupon.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Valida si un código de cupón está vigente y activo, calculando el descuento correspondiente y el importe final a pagar.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "codigo": "PROMO11",
+      "subtotal": 50000.0
+    },
+    "tips": "Cupón de prueba en base de datos: PROMO11 (10% desc)."
+  },
+  {
+    "id": "cupones-crud",
+    "category": "cupones",
+    "categoryName": "Cupones de Descuento",
+    "categoryIcon": "🎟️",
+    "name": "Cupones de Descuento (CRUD Admin)",
+    "path": "cupones.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Gestión administrativa de cupones de descuento: creación, fechas de vigencia, porcentaje y topes.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de cupón"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "codigo": "DESCUENTO20",
+      "cantidad": 100,
+      "porcentaje_descuento": 20.0,
+      "tope_descuento": 15000.0,
+      "fecha_inicio": "2026-01-01",
+      "fecha_fin": "2026-12-31",
+      "activo": 1
+    },
+    "tips": "Requiere login administrativo."
+  },
+  {
+    "id": "clientes-crud",
+    "category": "clientes",
+    "categoryName": "Clientes & Direcciones",
+    "categoryIcon": "👥",
+    "name": "Clientes (CRUD)",
+    "path": "clientes.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Administración de clientes registrados.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "Filtrar por ID"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Mariana",
+      "apellido": "González",
+      "email": "mariana.gonzalez@example.com",
+      "telefono": "1198765432",
+      "cuit": "27301234564"
+    },
+    "tips": "Clientes existentes: ID 1 (Gustavo), ID 8 (Lucas)."
+  },
+  {
+    "id": "clientes-direcciones-lista",
+    "category": "clientes",
+    "categoryName": "Clientes & Direcciones",
+    "categoryIcon": "👥",
+    "name": "Direcciones de un Cliente",
+    "path": "clientes_direcciones.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Lista todas las direcciones asociadas a un cliente por su ID.",
+    "params": [
+      {
+        "key": "cliente_id",
+        "value": "1",
+        "enabled": true,
+        "desc": "ID del cliente"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Devuelve calle, ciudad, provincia y código postal."
+  },
+  {
+    "id": "direcciones-crear",
+    "category": "clientes",
+    "categoryName": "Clientes & Direcciones",
+    "categoryIcon": "👥",
+    "name": "Crear Dirección (Cliente con Token)",
+    "path": "direcciones/crear.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "bearer",
+    "authLabel": "Requiere Bearer Token",
+    "description": "Crea una nueva dirección en la libreta de direcciones del cliente autenticado.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "descripcion": "Oficina Central",
+      "direccion": "Av. Libertador 4500",
+      "piso": "8",
+      "departamento": "A",
+      "cpostal": "1426",
+      "ciudad": "CABA",
+      "provincia": "Buenos Aires",
+      "indicaciones": "Recepción en planta baja",
+      "principal": 1
+    },
+    "tips": "Usa el token del header Authorization para asociar la dirección al cliente."
+  },
+  {
+    "id": "direcciones-modifica",
+    "category": "clientes",
+    "categoryName": "Clientes & Direcciones",
+    "categoryIcon": "👥",
+    "name": "Modificar Dirección (Cliente con Token)",
+    "path": "direcciones/modifica.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST",
+      "PUT"
+    ],
+    "auth": "bearer",
+    "authLabel": "Requiere Bearer Token",
+    "description": "Actualiza los datos de una dirección existente perteneciente al cliente autenticado.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "id": 1,
+      "descripcion": "Casa Actualizada",
+      "direccion": "Corrientes 3233",
+      "ciudad": "CABA",
+      "provincia": "Buenos Aires",
+      "cpostal": "1000"
+    },
+    "tips": "Verifica que la dirección pertenezca al cliente del token."
+  },
+  {
+    "id": "direcciones-delete",
+    "category": "clientes",
+    "categoryName": "Clientes & Direcciones",
+    "categoryIcon": "👥",
+    "name": "Eliminar Dirección (Cliente con Token)",
+    "path": "direcciones/detele.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST",
+      "DELETE"
+    ],
+    "auth": "bearer",
+    "authLabel": "Requiere Bearer Token",
+    "description": "Elimina una dirección de la libreta del cliente autenticado.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "id": 999
+    },
+    "tips": "Acepta POST con { id } o DELETE."
+  },
+  {
+    "id": "cuit-fiscal",
+    "category": "clientes",
+    "categoryName": "Clientes & Direcciones",
+    "categoryIcon": "👥",
+    "name": "Datos Fiscales Empresa (CUIT)",
+    "path": "cuit.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración de puntos de venta y datos fiscales para facturación electrónica (datoscuit).",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de registro CUIT"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "razonsocial": "Stadium Deportes S.A.",
+      "fantasia": "Stadium Deportes",
+      "cuit": "30712345678",
+      "condicioniva": "Responsable Inscripto",
+      "direccion": "Av. Juan B. Justo 1234",
+      "ciudad": "Mar del Plata",
+      "puntoventa": 1
+    },
+    "tips": "Utilizado por el módulo de facturación AFIP."
+  },
+  {
+    "id": "presupuestos-crear",
+    "category": "presupuestos",
+    "categoryName": "Presupuestos",
+    "categoryIcon": "📑",
+    "name": "Solicitar Presupuesto Público",
+    "path": "presupuestos/crear.php",
+    "method": "POST",
+    "supportedMethods": [
+      "POST"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Registra una solicitud de presupuesto desde el cotizador web interactivo con datos de contacto, proyecto y productos de equipamiento.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "contacto": {
+        "nombre": "Lucas Bragagnolo",
+        "email": "lucasbragagnolo6@gmail.com",
+        "telefono": "+542325420041",
+        "empresa": "Club Alvarado"
+      },
+      "proyecto": {
+        "tipoProyecto": "complejo",
+        "ubicacion": "Mar del Plata, Buenos Aires",
+        "presupuesto": "consultar",
+        "plazo": "flexible",
+        "requerimientos": "Instalación completa de cancha de básquet profesional"
+      },
+      "productos": [
+        {
+          "id": 73,
+          "nombre": "Aro De Básquet Para Uso Doméstico Stadium",
+          "categoria": "Aros",
+          "cantidad": 2
+        }
+      ]
+    },
+    "tips": "Guarda en tablas presupuestos y presupuestos_det."
+  },
+  {
+    "id": "presupuestos-crud",
+    "category": "presupuestos",
+    "categoryName": "Presupuestos",
+    "categoryIcon": "📑",
+    "name": "Presupuestos Admin (CRUD)",
+    "path": "presupuestos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Gestión interna de solicitudes de presupuesto.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "Filtrar por ID"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "estado": "Aprobado",
+      "total": 350000.0
+    },
+    "tips": "Permite actualizar estado y montos cotizados."
+  },
+  {
+    "id": "compras-crud",
+    "category": "compras",
+    "categoryName": "Compras & Facturación",
+    "categoryIcon": "💼",
+    "name": "Compras a Proveedores (CRUD)",
+    "path": "compras.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Registro y consulta de órdenes de compra a proveedores.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de compra"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "proveedor_id": 1,
+      "fecha": "2026-10-21",
+      "total": 120000.0,
+      "estado": "Pendiente"
+    },
+    "tips": "Usa transacciones MySQL."
+  },
+  {
+    "id": "compras-det",
+    "category": "compras",
+    "categoryName": "Compras & Facturación",
+    "categoryIcon": "💼",
+    "name": "Detalle de Items de Compra",
+    "path": "compras_det.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Obtiene las líneas de producto detalladas de una orden de compra.",
+    "params": [
+      {
+        "key": "idcom",
+        "value": "1",
+        "enabled": true,
+        "desc": "ID de compra"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Cruza con la tabla producto_variantes."
+  },
+  {
+    "id": "proveedores-crud",
+    "category": "compras",
+    "categoryName": "Compras & Facturación",
+    "categoryIcon": "💼",
+    "name": "Proveedores (CRUD)",
+    "path": "proveedores.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Administración de proveedores de insumos y mercadería.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de proveedor"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "nombre": "Distribuidora Deportiva Mayorista",
+      "cuit": "30998877665",
+      "telefono": "011-4567-8900",
+      "email": "contacto@distribuidoradeportiva.com",
+      "direccion": "Av. Colón 4567, Mar del Plata"
+    },
+    "tips": "Permite asociar órdenes de compra."
+  },
+  {
+    "id": "entradas-stock",
+    "category": "compras",
+    "categoryName": "Compras & Facturación",
+    "categoryIcon": "💼",
+    "name": "Entradas de Stock (Mercadería)",
+    "path": "entradas.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Ingreso formal de mercadería al inventario actualizando existencias físicas.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de entrada"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "fecha": "2026-10-21",
+      "proveedor_id": 1,
+      "remito": "R-0001-000456"
+    },
+    "tips": "Impacta en los informes de movimiento de stock."
+  },
+  {
+    "id": "facturas-afip",
+    "category": "compras",
+    "categoryName": "Compras & Facturación",
+    "categoryIcon": "💼",
+    "name": "Comprobantes Fiscales AFIP (Facturas)",
+    "path": "facturas.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Emisión y consulta de comprobantes fiscales electrónicos (Factura A, B, Notas de Crédito) con CAE y detalle de alícuotas.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de factura específica"
+      },
+      {
+        "key": "clientes",
+        "value": "1",
+        "enabled": false,
+        "desc": "Devolver lista auxiliar de clientes"
+      },
+      {
+        "key": "cuits",
+        "value": "1",
+        "enabled": false,
+        "desc": "Devolver lista auxiliar de CUITs emisor"
+      },
+      {
+        "key": "articulos",
+        "value": "1",
+        "enabled": false,
+        "desc": "Devolver lista de artículos facturables"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "tipocom": "Factura B",
+      "letra": "B",
+      "ptovta": 1,
+      "numero": 1045,
+      "fecha": "2026-10-21",
+      "idcli": 1,
+      "idcuit": 1,
+      "idped": 125,
+      "total": 52000.0,
+      "detalles": [
+        {
+          "descripcion": "Aro De Básquet Stadium",
+          "cantidad": 1,
+          "precio": 52000.0,
+          "alicuotaiva": 21
+        }
+      ]
+    },
+    "tips": "Conectado con el sistema de facturación electrónica."
+  },
+  {
+    "id": "equip-hero",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Equipamiento Profesional — Hero Público",
+    "path": "equipamientos/hero.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Datos del banner principal (títulos, subtítulos, call-to-action) de la landing de Equipamiento Profesional.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Diseñado para la landing de competición."
+  },
+  {
+    "id": "equip-lista",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Equipamiento Profesional — Lista de Productos",
+    "path": "equipamientos/lista.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Listado de equipamientos profesionales homologados: jirafas de básquet, arcos de fútbol, postes de vóley.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Contiene especificaciones técnicas y fotos de alta resolución."
+  },
+  {
+    "id": "equip-admin",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Equipamiento Profesional — Admin Config",
+    "path": "equipamiento_profesional.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Configuración y administración de la sección Equipamiento Profesional.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "titulo": "Equipamiento Deportivo de Alto Rendimiento",
+      "activo": 1
+    },
+    "tips": "Requiere sesión administrativa."
+  },
+  {
+    "id": "pisos-datos",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Pisos Deportivos — Datos Públicos",
+    "path": "pisosdeportivos/datos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Entrega todas las secciones de la landing de Pisos Deportivos: tipos de superficies, ventajas comparativas y galería.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Alias: pisos_deportivos.php"
+  },
+  {
+    "id": "pisos-hero",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Pisos Deportivos — Hero",
+    "path": "pisosdeportivos/hero.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Encabezado y textos promocionales del hero de Pisos Deportivos.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Configurable desde pisos_deportivos_hero.php."
+  },
+  {
+    "id": "pisos-config-admin",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Pisos Deportivos — Configuración Admin",
+    "path": "pisos_deportivos_config.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Ajuste de parámetros y textos principales de la landing de Pisos Deportivos.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "titulo_principal": "Pisos Deportivos de Alto Rendimiento",
+      "subtitulo": "Madera, vinílicos y resinas sintéticas"
+    },
+    "tips": "Requiere sesión de administrador."
+  },
+  {
+    "id": "tableros-datos",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Tableros & Marcadores — Datos Públicos",
+    "path": "tablerosmarcadores/datos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Listados, especificaciones y características de marcadores electrónicos y consolas de comando.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Alias de administración: tableros_marcadores.php."
+  },
+  {
+    "id": "tableros-hero",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Tableros & Marcadores — Hero",
+    "path": "tablerosmarcadores/hero.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Elemento Hero público para la sección de marcadores electrónicos.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Retorna título, subtítulo e imagen de fondo."
+  },
+  {
+    "id": "proyectos-lista",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Proyectos Realizados (Lista Pública)",
+    "path": "proyectos/lista.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Portafolio de obras y proyectos ejecutados (Polideportivo Islas Malvinas, clubes, estadios).",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Incluye fotos, ubicación y descripción de la obra."
+  },
+  {
+    "id": "proyectos-det",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Detalle de Proyecto & Especificaciones",
+    "path": "proyectos_det.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Obtiene las especificaciones técnicas completas y características de un proyecto.",
+    "params": [
+      {
+        "key": "id",
+        "value": "4",
+        "enabled": true,
+        "desc": "ID del proyecto (ej: 4, 5)"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Obras existentes: ID 4 (Polideportivo Islas Malvinas), ID 5 (Second Chanse)."
+  },
+  {
+    "id": "proyectos-crud-admin",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Proyectos Admin (CRUD)",
+    "path": "proyectos.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "public",
+    "authLabel": "Pública / Admin",
+    "description": "Gestión integral de proyectos y casos de éxito.",
+    "params": [
+      {
+        "key": "id",
+        "value": "4",
+        "enabled": false,
+        "desc": "Filtrar por ID"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "title": "Cancha Club Banco Provincia",
+      "slug": "cancha-club-banco-provincia",
+      "subtitle": "Piso de madera flotante 450m2",
+      "location": "Buenos Aires",
+      "area": "450 m2",
+      "activo": 1
+    },
+    "tips": "Guarda en base de datos centralizada."
+  },
+  {
+    "id": "slider-publico",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Slider Principal (Banners Activos)",
+    "path": "slider/listar.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Entrega la lista de diapositivas activas para el carrusel de la página de inicio, con imágenes desktop y mobile.",
+    "params": [],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Incluye botones de acción y etiquetas destacadas."
+  },
+  {
+    "id": "slider-crud-admin",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Slider Admin (CRUD)",
+    "path": "slider.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración de diapositivas del banner de portada.",
+    "params": [],
+    "bodyType": "json",
+    "body": {
+      "titulo": "NUEVA TEMPORADA 2026",
+      "subtitulo": "Descubrí los mejores aros y pisos deportivos",
+      "botontexto": "Explorar catálogo",
+      "botonlink": "https://stadiumdeportes.com/catalogo",
+      "orden": 1,
+      "activo": 1
+    },
+    "tips": "Requiere sesión de administrador."
+  },
+  {
+    "id": "novedades-lista",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Novedades & Noticias (Lista Paginada)",
+    "path": "novedades/lista.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Listado de artículos del blog o novedades con soporte de búsqueda por texto, filtro de etiquetas y paginación.",
+    "params": [
+      {
+        "key": "page",
+        "value": "1",
+        "enabled": true,
+        "desc": "Página"
+      },
+      {
+        "key": "limit",
+        "value": "6",
+        "enabled": true,
+        "desc": "Cantidad de artículos"
+      },
+      {
+        "key": "busqueda",
+        "value": "",
+        "enabled": false,
+        "desc": "Término de búsqueda"
+      },
+      {
+        "key": "destacado",
+        "value": "1",
+        "enabled": false,
+        "desc": "Solo destacadas"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Devuelve artículos activos ordenados por fecha."
+  },
+  {
+    "id": "novedades-detalle",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Novedades — Detalle por Slug",
+    "path": "novedades/detalle.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Devuelve el contenido completo de un artículo de novedades buscando por su slug amigable.",
+    "params": [
+      {
+        "key": "slug",
+        "value": "evento-harlem",
+        "enabled": true,
+        "desc": "Slug del artículo (ej: evento-harlem)"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Incluye también artículos relacionados."
+  },
+  {
+    "id": "novedades-destacadas",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Novedades — Artículos Destacados",
+    "path": "novedades/destacadas.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Devuelve los artículos marcados como destacados para la home del sitio.",
+    "params": [
+      {
+        "key": "limit",
+        "value": "3",
+        "enabled": true,
+        "desc": "Límite"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Ruta pública."
+  },
+  {
+    "id": "novedades-relacionadas",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Novedades — Artículos Relacionados",
+    "path": "novedades/relacionadas.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "public",
+    "authLabel": "Pública",
+    "description": "Obtiene novedades recomendadas o relacionadas basadas en el slug del artículo activo.",
+    "params": [
+      {
+        "key": "slug",
+        "value": "evento-harlem",
+        "enabled": true,
+        "desc": "Slug base"
+      },
+      {
+        "key": "limit",
+        "value": "3",
+        "enabled": true,
+        "desc": "Límite"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Excluye el artículo actual."
+  },
+  {
+    "id": "novedades-admin-crud",
+    "category": "landings",
+    "categoryName": "Landings Especializadas",
+    "categoryIcon": "🏟️",
+    "name": "Novedades Admin (CRUD)",
+    "path": "novedades.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Administración del blog / sección de noticias.",
+    "params": [
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID de artículo"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "titulo": "Inauguración Nuevo Estadio Municipal",
+      "slug": "inauguracion-nuevo-estadio-municipal",
+      "copete": "Equipamiento completo de básquet y voley instalado por Stadium",
+      "cuerpo": "<p>Contenido detallado de la noticia...</p>",
+      "destacado": 1,
+      "activo": 1
+    },
+    "tips": "Requiere sesión administrativa."
+  },
+  {
+    "id": "dashboard-stats",
+    "category": "sistema",
+    "categoryName": "Sistema & Métricas",
+    "categoryIcon": "⚙️",
+    "name": "Estadísticas del Dashboard",
+    "path": "dashboard_stats.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Métricas consolidadas del sistema: ventas totales, productos vendidos, pedidos por estado, gráficos de actividad diaria.",
+    "params": [
+      {
+        "key": "tipo",
+        "value": "completo",
+        "enabled": true,
+        "desc": "completo, general, ventas_diarias, actividad"
+      }
+    ],
+    "bodyType": "none",
+    "body": null,
+    "tips": "Requiere haber iniciado sesión previamente."
+  },
+  {
+    "id": "tablas-maestras",
+    "category": "sistema",
+    "categoryName": "Sistema & Métricas",
+    "categoryIcon": "⚙️",
+    "name": "Tablas Maestras & Diccionarios",
+    "path": "tablas.php",
+    "method": "GET",
+    "supportedMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "auth": "admin",
+    "authLabel": "Admin Session",
+    "description": "Consulta y administración de tablas auxiliares y valores paramétricos del sistema.",
+    "params": [
+      {
+        "key": "tipo",
+        "value": "DEF",
+        "enabled": true,
+        "desc": "Tipo de tabla o 'DEF' para listar tipos"
+      },
+      {
+        "key": "id",
+        "value": "1",
+        "enabled": false,
+        "desc": "ID específico"
+      }
+    ],
+    "bodyType": "json",
+    "body": {
+      "codtab": "COND_IVA",
+      "nombre": "Responsable Inscripto",
+      "valor": "RI",
+      "orden": 1
+    },
+    "tips": "Tablas de configuración del sistema."
+  }
+];
+
+        // --- 2. GLOBAL STATE ---
+        let currentEndpoint = null;
+        let activeCategory = 'all';
+        let clientToken = localStorage.getItem('stadium_client_token') || '7852dff2776d90d6572cae673e9d7dd4';
+        let adminLoggedIn = false;
+        let lastResponseData = null;
+        let requestHistory = JSON.parse(localStorage.getItem('stadium_req_history') || '[]');
+
+        // --- 3. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategoryChips();
+            renderEndpointsList();
+            updateTokenPill();
+            renderHistoryList();
+
+            // Select first endpoint by default
+            if (ALL_ENDPOINTS.length > 0) {
+                selectEndpoint(ALL_ENDPOINTS[0].id);
+            }
+
+            // Keyboard shortcut Ctrl+Enter to send request
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    sendRequest();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                }
+            });
+        });
+
+        // --- 4. CATEGORY & SEARCH FILTERING ---
+        function renderCategoryChips() {
+            const categories = [
+                { id: 'all', name: 'Todos' },
+                { id: 'auth', name: '🔐 Auth' },
+                { id: 'catalogo', name: '📦 Productos' },
+                { id: 'taxonomias', name: '🏷️ Categorías & Marcas' },
+                { id: 'stock', name: '📊 Stock' },
+                { id: 'pedidos', name: '🛒 Pedidos' },
+                { id: 'mercadopago', name: '💳 Mercado Pago' },
+                { id: 'correoarg', name: '📬 Correo Arg' },
+                { id: 'cupones', name: '🎟️ Cupones' },
+                { id: 'clientes', name: '👥 Clientes' },
+                { id: 'presupuestos', name: '📑 Presupuestos' },
+                { id: 'compras', name: '💼 Compras & Facturas' },
+                { id: 'landings', name: '🏟️ Landings & Proyectos' },
+                { id: 'sistema', name: '⚙️ Sistema' }
+            ];
+
+            const cont = document.getElementById('categoryChips');
+            cont.innerHTML = categories.map(c => `
+                <button class="cat-chip ${c.id === activeCategory ? 'active' : ''}" onclick="selectCategory('${c.id}')">
+                    ${c.name}
+                </button>
+            `).join('');
+        }
+
+        function selectCategory(catId) {
+            activeCategory = catId;
+            renderCategoryChips();
+            renderEndpointsList();
+        }
+
+        function filterEndpoints() {
+            renderEndpointsList();
+        }
+
+        function renderEndpointsList() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const listCont = document.getElementById('endpointList');
+
+            const filtered = ALL_ENDPOINTS.filter(ep => {
+                const matchesCat = (activeCategory === 'all') || (ep.category === activeCategory);
+                const matchesQuery = !query ||
+                    ep.name.toLowerCase().includes(query) ||
+                    ep.path.toLowerCase().includes(query) ||
+                    ep.method.toLowerCase().includes(query) ||
+                    (ep.categoryName && ep.categoryName.toLowerCase().includes(query));
+                return matchesCat && matchesQuery;
+            });
+
+            document.getElementById('endpointCounter').textContent = `${filtered.length} endpoints`;
+
+            if (filtered.length === 0) {
+                listCont.innerHTML = `<div style="color:var(--text-dim); text-align:center; padding:30px 10px; font-size:0.8rem;">No se encontraron endpoints con esos criterios.</div>`;
+                return;
+            }
+
+            // Group by category
+            const groups = {};
+            filtered.forEach(ep => {
+                const cat = ep.categoryName || 'Otros';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(ep);
+            });
+
+            let html = '';
+            for (const [catName, items] of Object.entries(groups)) {
+                html += `<div class="group-header"><span>${catName}</span><span>${items.length}</span></div>`;
+                items.forEach(ep => {
+                    const isSelected = currentEndpoint && currentEndpoint.id === ep.id;
+                    const methodClass = 'method-' + ep.method.toLowerCase();
+                    const authClass = 'auth-' + ep.auth;
+                    html += `
+                        <div class="endpoint-item ${isSelected ? 'active' : ''}" onclick="selectEndpoint('${ep.id}')">
+                            <div class="ep-header">
+                                <span class="method-badge ${methodClass}">${ep.method}</span>
+                                <span class="ep-name" title="${ep.name}">${ep.name}</span>
+                            </div>
+                            <div class="ep-path">${ep.path}</div>
+                            <div class="ep-meta">
+                                <span class="auth-tag ${authClass}">${ep.authLabel}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            listCont.innerHTML = html;
+        }
+
+        // --- 5. SELECT ENDPOINT & POPULATE WORKBENCH ---
+        function selectEndpoint(id) {
+            const ep = ALL_ENDPOINTS.find(x => x.id === id);
+            if (!ep) return;
+            currentEndpoint = ep;
+
+            renderEndpointsList();
+
+            // Populate Top Bar
+            document.getElementById('reqMethod').value = ep.method;
+            document.getElementById('reqPath').value = ep.path;
+            document.getElementById('infoTitle').textContent = ep.name;
+            document.getElementById('infoDesc').textContent = ep.description + (ep.tips ? ' (' + ep.tips + ')' : '');
+
+            // Auth badge
+            const badge = document.getElementById('infoAuthBadge');
+            badge.className = 'auth-tag auth-' + ep.auth;
+            badge.textContent = ep.authLabel;
+
+            // Load Params
+            loadParamsTable(ep.params || []);
+
+            // Load Headers
+            loadDefaultHeaders(ep);
+
+            // Load Body
+            loadBodyEditor(ep);
+
+            updateFullUrlDisplay();
+        }
+
+        function onMethodChange() {
+            const method = document.getElementById('reqMethod').value;
+            if (method === 'GET' || method === 'DELETE') {
+                switchReqTab('tabParams');
+            } else {
+                switchReqTab('tabBody');
+            }
+        }
+
+        function onPathInput() {
+            updateFullUrlDisplay();
+        }
+
+        function updateFullUrlDisplay() {
+            const baseUrl = getBaseUrl();
+            document.getElementById('urlPrefix').textContent = baseUrl;
+        }
+
+        function getBaseUrl() {
+            let url = document.getElementById('baseUrlInput').value.trim();
+            if (!url) url = './';
+            if (!url.endsWith('/')) url += '/';
+            return url;
+        }
+
+        function changeEnvPreset() {
+            const preset = document.getElementById('envPreset').value;
+            const input = document.getElementById('baseUrlInput');
+            if (preset === 'auto') {
+                input.value = './';
+            } else if (preset === 'local') {
+                input.value = 'http://localhost/stadium/api/';
+            } else if (preset === 'remote') {
+                input.value = 'https://stadium.planbsistemas.com.ar/api/';
+            }
+            updateFullUrlDisplay();
+        }
+
+        function updateBaseUrl() {
+            document.getElementById('envPreset').value = 'custom';
+            updateFullUrlDisplay();
+        }
+
+        function resetActiveEndpoint() {
+            if (currentEndpoint) {
+                selectEndpoint(currentEndpoint.id);
+                showToast('Endpoint restablecido a valores iniciales');
+            }
+        }
+
+        // --- 6. PARAMS MANAGEMENT ---
+        function loadParamsTable(params) {
+            const tbody = document.getElementById('paramsTableBody');
+            tbody.innerHTML = '';
+            params.forEach(p => {
+                addParamRow(p.key, p.value, p.enabled !== false, p.desc || '');
+            });
+            updateParamsCount();
+        }
+
+        function addParamRow(key = '', val = '', enabled = true, desc = '') {
+            const tbody = document.getElementById('paramsTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="text-align:center;"><input type="checkbox" class="param-enable" ${enabled ? 'checked' : ''} onchange="updateParamsCount()"></td>
+                <td><input type="text" class="param-input param-key" value="${escapeHtml(key)}" placeholder="clave"></td>
+                <td><input type="text" class="param-input param-val" value="${escapeHtml(val)}" placeholder="valor"></td>
+                <td><input type="text" class="param-input param-desc" value="${escapeHtml(desc)}" placeholder="descripción"></td>
+                <td style="text-align:center;"><button class="btn-icon" onclick="this.closest('tr').remove(); updateParamsCount();">✕</button></td>
+            `;
+            tbody.appendChild(row);
+            updateParamsCount();
+        }
+
+        function updateParamsCount() {
+            const rows = document.querySelectorAll('#paramsTableBody tr');
+            let enabledCount = 0;
+            rows.forEach(r => {
+                if (r.querySelector('.param-enable').checked && r.querySelector('.param-key').value.trim()) {
+                    enabledCount++;
+                }
+            });
+            document.getElementById('paramsCountBadge').textContent = enabledCount;
+        }
+
+        function getActiveQueryParams() {
+            const params = new URLSearchParams();
+            const rows = document.querySelectorAll('#paramsTableBody tr');
+            rows.forEach(r => {
+                const enabled = r.querySelector('.param-enable').checked;
+                const key = r.querySelector('.param-key').value.trim();
+                const val = r.querySelector('.param-val').value;
+                if (enabled && key) {
+                    params.append(key, val);
+                }
+            });
+            return params.toString();
+        }
+
+        // --- 7. HEADERS MANAGEMENT ---
+        function loadDefaultHeaders(ep) {
+            const tbody = document.getElementById('headersTableBody');
+            tbody.innerHTML = '';
+
+            addHeaderRow('Content-Type', 'application/json', true);
+
+            if (ep && (ep.auth === 'bearer' || ep.auth === 'public')) {
+                addHeaderRow('Authorization', 'Bearer ' + clientToken, ep.auth === 'bearer');
+            }
+
+            updateHeadersCount();
+        }
+
+        function addHeaderRow(key = '', val = '', enabled = true) {
+            const tbody = document.getElementById('headersTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="text-align:center;"><input type="checkbox" class="header-enable" ${enabled ? 'checked' : ''} onchange="updateHeadersCount()"></td>
+                <td><input type="text" class="param-input header-key" value="${escapeHtml(key)}" placeholder="Header"></td>
+                <td><input type="text" class="param-input header-val" value="${escapeHtml(val)}" placeholder="Valor"></td>
+                <td style="text-align:center;"><button class="btn-icon" onclick="this.closest('tr').remove(); updateHeadersCount();">✕</button></td>
+            `;
+            tbody.appendChild(row);
+            updateHeadersCount();
+        }
+
+        function updateHeadersCount() {
+            const rows = document.querySelectorAll('#headersTableBody tr');
+            let count = 0;
+            rows.forEach(r => {
+                if (r.querySelector('.header-enable').checked && r.querySelector('.header-key').value.trim()) {
+                    count++;
+                }
+            });
+            document.getElementById('headersCountBadge').textContent = count;
+        }
+
+        function getActiveHeaders() {
+            const headers = {};
+            const rows = document.querySelectorAll('#headersTableBody tr');
+            rows.forEach(r => {
+                const enabled = r.querySelector('.header-enable').checked;
+                const key = r.querySelector('.header-key').value.trim();
+                const val = r.querySelector('.header-val').value;
+                if (enabled && key) {
+                    headers[key] = val;
+                }
+            });
+            return headers;
+        }
+
+        // --- 8. BODY EDITOR ---
+        function loadBodyEditor(ep) {
+            const bodyType = ep.bodyType || 'none';
+            document.querySelector(`input[name="bodyTypeRadio"][value="${bodyType}"]`).checked = true;
+            onBodyTypeChange(bodyType);
+
+            const jsonInput = document.getElementById('bodyJsonInput');
+            if (ep.body) {
+                jsonInput.value = JSON.stringify(ep.body, null, 2);
+            } else {
+                jsonInput.value = '';
+            }
+            validateJsonInput();
+        }
+
+        function onBodyTypeChange(type) {
+            const jsonSec = document.getElementById('jsonEditorSection');
+            const formSec = document.getElementById('formEditorSection');
+            const badge = document.getElementById('bodyIndicatorBadge');
+
+            if (type === 'none') {
+                jsonSec.style.display = 'none';
+                formSec.style.display = 'none';
+                badge.textContent = 'None';
+            } else if (type === 'json') {
+                jsonSec.style.display = 'flex';
+                formSec.style.display = 'none';
+                badge.textContent = 'JSON';
+            } else if (type === 'form') {
+                jsonSec.style.display = 'none';
+                formSec.style.display = 'flex';
+                badge.textContent = 'Form';
+            }
+        }
+
+        function validateJsonInput() {
+            const val = document.getElementById('bodyJsonInput').value.trim();
+            const msgEl = document.getElementById('jsonValidationMsg');
+            document.getElementById('jsonCharCount').textContent = `${val.length} caracteres`;
+
+            if (!val) {
+                msgEl.textContent = 'Cuerpo vacío';
+                msgEl.style.color = 'var(--text-dim)';
+                return true;
+            }
+
+            try {
+                JSON.parse(val);
+                msgEl.textContent = '✓ JSON válido';
+                msgEl.style.color = 'var(--accent-emerald)';
+                return true;
+            } catch (err) {
+                msgEl.textContent = '✕ Error de sintaxis: ' + err.message;
+                msgEl.style.color = 'var(--accent-rose)';
+                return false;
+            }
+        }
+
+        function formatJsonBody() {
+            const area = document.getElementById('bodyJsonInput');
+            try {
+                const parsed = JSON.parse(area.value);
+                area.value = JSON.stringify(parsed, null, 2);
+                validateJsonInput();
+                showToast('JSON formateado');
+            } catch (e) {
+                showToast('Error: JSON no válido para formatear');
+            }
+        }
+
+        function minifyJsonBody() {
+            const area = document.getElementById('bodyJsonInput');
+            try {
+                const parsed = JSON.parse(area.value);
+                area.value = JSON.stringify(parsed);
+                validateJsonInput();
+                showToast('JSON minificado');
+            } catch (e) {
+                showToast('Error: JSON no válido');
+            }
+        }
+
+        function clearJsonBody() {
+            document.getElementById('bodyJsonInput').value = '';
+            validateJsonInput();
+        }
+
+        // --- 9. TABS NAVIGATION ---
+        function switchReqTab(tabId) {
+            document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            document.querySelectorAll('.tab-content').forEach(c => {
+                c.classList.toggle('active', c.id === tabId);
+            });
+        }
+
+        function switchRespTab(tabId) {
+            document.querySelectorAll('.response-panel .tab-bar .tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            document.querySelectorAll('.tab-resp-content').forEach(c => {
+                c.style.display = (c.id === tabId) ? 'block' : 'none';
+            });
+        }
+
+        // --- 10. SEND REQUEST EXECUTION ---
+        async function sendRequest() {
+            const method = document.getElementById('reqMethod').value;
+            const path = document.getElementById('reqPath').value.trim();
+            const baseUrl = getBaseUrl();
+            const queryParams = getActiveQueryParams();
+
+            let targetUrl = baseUrl + path;
+            if (queryParams) {
+                targetUrl += (targetUrl.includes('?') ? '&' : '?') + queryParams;
+            }
+
+            const btn = document.getElementById('btnSend');
+            const btnText = document.getElementById('btnSendText');
+            btn.disabled = true;
+            btnText.textContent = '⏳ Enviando...';
+
+            const statusBadge = document.getElementById('respStatusBadge');
+            statusBadge.className = 'status-badge status-idle';
+            statusBadge.textContent = 'Cargando...';
+
+            const startTime = performance.now();
+
+            const headers = getActiveHeaders();
+            const bodyType = document.querySelector('input[name="bodyTypeRadio"]:checked').value;
+            const withCredentials = document.getElementById('headerWithCredentials').checked;
+
+            const fetchOptions = {
+                method: method,
+                headers: headers,
+                credentials: withCredentials ? 'include' : 'same-origin'
+            };
+
+            // Attach body if not GET/HEAD
+            if (method !== 'GET' && method !== 'HEAD') {
+                if (bodyType === 'json') {
+                    const rawJson = document.getElementById('bodyJsonInput').value.trim();
+                    if (rawJson) {
+                        fetchOptions.body = rawJson;
+                    }
+                } else if (bodyType === 'form') {
+                    const fileInput = document.getElementById('fileUploadInput');
+                    const folder = document.getElementById('formFolderInput').value;
+                    const formData = new FormData();
+                    if (fileInput.files.length > 0) {
+                        formData.append('imagen', fileInput.files[0]);
+                    }
+                    formData.append('carpeta', folder);
+                    delete headers['Content-Type']; // Let browser set boundary
+                    fetchOptions.body = formData;
+                }
+            }
+
+            try {
+                const res = await fetch(targetUrl, fetchOptions);
+                const duration = Math.round(performance.now() - startTime);
+
+                const responseText = await res.text();
+                const byteSize = new Blob([responseText]).size;
+
+                lastResponseData = {
+                    status: res.status,
+                    statusText: res.statusText,
+                    headers: Object.fromEntries(res.headers.entries()),
+                    body: responseText,
+                    duration: duration,
+                    size: byteSize,
+                    url: targetUrl,
+                    method: method
+                };
+
+                displayResponse(lastResponseData);
+                addToHistory(lastResponseData);
+
+            } catch (error) {
+                const duration = Math.round(performance.now() - startTime);
+                displayErrorResponse(error, targetUrl, duration);
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = '▶ Enviar';
+            }
+        }
+
+        function displayResponse(data) {
+            // Status Badge
+            const badge = document.getElementById('respStatusBadge');
+            badge.textContent = `${data.status} ${data.statusText || ''}`;
+            badge.className = 'status-badge ' + (data.status >= 200 && data.status < 300 ? 'status-2xx' : (data.status >= 400 && data.status < 500 ? 'status-4xx' : 'status-5xx'));
+
+            document.getElementById('respTime').textContent = `${data.duration} ms`;
+            document.getElementById('respSize').textContent = `${(data.size / 1024).toFixed(2)} KB`;
+
+            // Raw Body
+            document.getElementById('rawContent').textContent = data.body;
+
+            // Formatted JSON
+            let parsedJson = null;
+            try {
+                parsedJson = JSON.parse(data.body);
+            } catch (e) {}
+
+            const jsonViewer = document.getElementById('jsonViewerContent');
+            if (parsedJson !== null) {
+                jsonViewer.innerHTML = `<pre>${syntaxHighlightJson(parsedJson)}</pre>`;
+                renderPreviewUi(parsedJson);
+            } else {
+                jsonViewer.innerHTML = `<pre style="color:var(--text-muted);">${escapeHtml(data.body)}</pre>`;
+                document.getElementById('previewContainer').innerHTML = `<span style="color:var(--text-dim);">Respuesta en texto plano / HTML (no JSON).</span>`;
+            }
+
+            // Headers Table
+            const headersTbody = document.getElementById('respHeadersTableBody');
+            headersTbody.innerHTML = '';
+            for (const [k, v] of Object.entries(data.headers)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${escapeHtml(k)}</strong></td><td>${escapeHtml(v)}</td>`;
+                headersTbody.appendChild(tr);
+            }
+        }
+
+        function displayErrorResponse(error, url, duration) {
+            const badge = document.getElementById('respStatusBadge');
+            badge.textContent = 'Error de Red';
+            badge.className = 'status-badge status-5xx';
+            document.getElementById('respTime').textContent = `${duration} ms`;
+            document.getElementById('respSize').textContent = '0 KB';
+
+            const jsonViewer = document.getElementById('jsonViewerContent');
+            jsonViewer.innerHTML = `
+                <div style="color:#f87171; padding:10px;">
+                    <strong>Error de Conexión:</strong> ${escapeHtml(error.message)}
+                    <br><br>
+                    <span style="color:var(--text-muted); font-size:0.75rem;">
+                        Verifica que el servidor local de Apache o la URL remota estén disponibles y no bloqueados por CORS.
+                        <br>URL intentada: <code>${escapeHtml(url)}</code>
+                    </span>
+                </div>
+            `;
+            document.getElementById('rawContent').textContent = error.stack || error.message;
+        }
+
+        // --- 11. SYNTAX HIGHLIGHTING & PREVIEW ---
+        function syntaxHighlightJson(json) {
+            const str = JSON.stringify(json, null, 2);
+            return escapeHtml(str).replace(/("(\\\\u[a-zA-Z0-9]{4}|\\\\[^u]|[^\\\\"])*"(\\s*:)?|\\b(true|false|null)\\b|-?\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function renderPreviewUi(data) {
+            const cont = document.getElementById('previewContainer');
+            let cardsHtml = '';
+
+            // 1. Mercado Pago Preference created
+            if (data.preference_id || data.init_point || data.sandbox_init_point) {
+                const link = data.sandbox_init_point || data.init_point;
+                cardsHtml += `
+                    <div class="preview-card mp-box">
+                        <div class="preview-card-title">💳 Preferencia de Mercado Pago Creada</div>
+                        <p style="font-size:0.8rem; margin-bottom:8px;"><strong>Preference ID:</strong> <code>${data.preference_id || '—'}</code></p>
+                        ${link ? `<a href="${link}" target="_blank" class="btn btn-primary btn-sm" style="background:#009ee3;">Ir al Checkout de Mercado Pago ↗</a>` : ''}
+                    </div>
+                `;
+            }
+
+            // 2. Images preview
+            const images = [];
+            function findImages(obj) {
+                if (!obj || typeof obj !== 'object') return;
+                for (const [k, v] of Object.entries(obj)) {
+                    if (typeof v === 'string' && (v.includes('.webp') || v.includes('.jpg') || v.includes('.png')) && (v.startsWith('http') || v.startsWith('uploads/'))) {
+                        images.push(v.startsWith('http') ? v : 'https://stadium.planbsistemas.com.ar/' + v);
+                    } else if (typeof v === 'object') {
+                        findImages(v);
+                    }
+                }
+            }
+            findImages(data);
+
+            if (images.length > 0) {
+                const uniqueImgs = [...new Set(images)].slice(0, 12);
+                cardsHtml += `
+                    <div class="preview-card">
+                        <div class="preview-card-title">🖼️ Imágenes Detectadas (${uniqueImgs.length})</div>
+                        <div class="img-grid">
+                            ${uniqueImgs.map(src => `<a href="${src}" target="_blank"><img src="${src}" class="img-thumb" title="${src}"></a>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. User / Client Profile Card
+            if (data.data && data.data.cliente) {
+                const cli = data.data.cliente;
+                cardsHtml += `
+                    <div class="preview-card">
+                        <div class="preview-card-title">👤 Cliente Verificado</div>
+                        <p style="font-size:0.82rem;"><strong>Nombre:</strong> ${cli.nombre} ${cli.apellido}</p>
+                        <p style="font-size:0.82rem;"><strong>Email:</strong> ${cli.email}</p>
+                        <p style="font-size:0.82rem;"><strong>Token:</strong> <code>${cli.token}</code></p>
+                        <button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="setClientTokenDirect('${cli.token}')">Usar este Token</button>
+                    </div>
+                `;
+            }
+
+            if (cardsHtml) {
+                cont.innerHTML = cardsHtml;
+            } else {
+                cont.innerHTML = `<div style="color:var(--text-dim); padding:10px;">No se detectaron elementos visuales especiales en el JSON. Puedes ver los datos en la pestaña <strong>Respuesta Formateada</strong>.</div>`;
+            }
+        }
+
+        // --- 12. COPY / DOWNLOAD UTILS ---
+        function copyCurl() {
+            const method = document.getElementById('reqMethod').value;
+            const path = document.getElementById('reqPath').value.trim();
+            const baseUrl = getBaseUrl();
+            const queryParams = getActiveQueryParams();
+
+            let targetUrl = baseUrl + path;
+            if (queryParams) targetUrl += (targetUrl.includes('?') ? '&' : '?') + queryParams;
+
+            const headers = getActiveHeaders();
+            let curl = `curl -X ${method} "${targetUrl}"`;
+
+            for (const [k, v] of Object.entries(headers)) {
+                curl += ` \\\n  -H "${k}: ${v}"`;
+            }
+
+            const bodyType = document.querySelector('input[name="bodyTypeRadio"]:checked').value;
+            if (method !== 'GET' && method !== 'HEAD' && bodyType === 'json') {
+                const rawJson = document.getElementById('bodyJsonInput').value.trim();
+                if (rawJson) {
+                    curl += ` \\\n  -d '${rawJson.replace(/'/g, "\\\\'") }'`;
+                }
+            }
+
+            navigator.clipboard.writeText(curl);
+            showToast('Comando cURL copiado al portapapeles');
+        }
+
+        function copyResponse() {
+            if (!lastResponseData) return;
+            navigator.clipboard.writeText(lastResponseData.body);
+            showToast('Respuesta copiada al portapapeles');
+        }
+
+        function downloadResponse() {
+            if (!lastResponseData) return;
+            const blob = new Blob([lastResponseData.body], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `stadium_response_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearResponse() {
+            document.getElementById('respStatusBadge').textContent = 'Esperando';
+            document.getElementById('respStatusBadge').className = 'status-badge status-idle';
+            document.getElementById('respTime').textContent = '0 ms';
+            document.getElementById('respSize').textContent = '0 KB';
+            document.getElementById('jsonViewerContent').innerHTML = '<span style="color:var(--text-dim);">Haz clic en "▶ Enviar" para ejecutar la petición...</span>';
+            document.getElementById('rawContent').textContent = '';
+            document.getElementById('respHeadersTableBody').innerHTML = '<tr><td colspan="2" style="color:var(--text-dim); text-align:center;">No hay headers disponibles</td></tr>';
+            document.getElementById('previewContainer').innerHTML = '<span style="color:var(--text-dim);">No hay vista previa disponible.</span>';
+        }
+
+        // --- 13. REQUEST HISTORY ---
+        function addToHistory(data) {
+            const item = {
+                time: new Date().toLocaleTimeString(),
+                method: data.method,
+                url: data.url,
+                status: data.status,
+                duration: data.duration,
+                body: data.body
+            };
+            requestHistory.unshift(item);
+            if (requestHistory.length > 25) requestHistory.pop();
+            localStorage.setItem('stadium_req_history', JSON.stringify(requestHistory));
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const cont = document.getElementById('historyList');
+            document.getElementById('historyCounter').textContent = requestHistory.length;
+
+            if (requestHistory.length === 0) {
+                cont.innerHTML = '<div style="color:var(--text-dim); text-align:center; padding:12px;">Sin peticiones previas en esta sesión.</div>';
+                return;
+            }
+
+            cont.innerHTML = requestHistory.map((h, i) => `
+                <div class="history-item" onclick="loadHistoryItem(${i})">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="method-badge method-${h.method.toLowerCase()}">${h.method}</span>
+                        <span style="font-family:var(--font-code); color:#cbd5e1;">${escapeHtml(h.url)}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span class="status-badge ${h.status >= 200 && h.status < 300 ? 'status-2xx' : 'status-4xx'}" style="padding:1px 6px; font-size:0.7rem;">${h.status}</span>
+                        <span style="color:var(--text-dim); font-size:0.72rem;">${h.duration} ms</span>
+                        <span style="color:var(--text-dim); font-size:0.72rem;">${h.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadHistoryItem(index) {
+            const h = requestHistory[index];
+            if (!h) return;
+            displayResponse({
+                status: h.status,
+                statusText: '',
+                headers: {},
+                body: h.body,
+                duration: h.duration,
+                size: new Blob([h.body]).size,
+                url: h.url,
+                method: h.method
+            });
+            showToast('Respuesta restaurada del historial');
+        }
+
+        function clearHistory() {
+            requestHistory = [];
+            localStorage.removeItem('stadium_req_history');
+            renderHistoryList();
+            showToast('Historial borrado');
+        }
+
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('bottomDrawer');
+            const icon = document.getElementById('drawerToggleIcon');
+            drawer.classList.toggle('expanded');
+            icon.textContent = drawer.classList.contains('expanded') ? '▼' : '▲';
+        }
+
+        // --- 14. ADMIN LOGIN & SESSION ---
+        function openAdminModal() {
+            document.getElementById('adminModal').classList.add('active');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('active');
+        }
+
+        function onUserPresetChange() {
+            const preset = document.getElementById('modalUserPreset').value;
+            const emailInput = document.getElementById('modalAdminEmail');
+            const md5Input = document.getElementById('modalAdminMd5');
+
+            if (preset === 'gustavo') {
+                emailInput.value = 'gustavo.bragagnolo@gmail.com';
+                md5Input.value = '80f1118f636c5b3e986d55af1e74c857';
+            } else if (preset === 'lucas') {
+                emailInput.value = 'lucasbragagnolo6@gmail.com';
+                md5Input.value = 'd89a3254b70a1955648255034e603d63';
+            }
+        }
+
+        async function doAdminLogin() {
+            const email = document.getElementById('modalAdminEmail').value.trim();
+            const passwordMd5 = document.getElementById('modalAdminMd5').value.trim();
+            const btn = document.getElementById('btnModalLogin');
+
+            btn.disabled = true;
+            btn.textContent = 'Autenticando...';
+
+            const baseUrl = getBaseUrl();
+            try {
+                const res = await fetch(baseUrl + 'login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, passwordMd5 }),
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    adminLoggedIn = true;
+                    updateAdminSessionPill(true, data.user ? data.user.nombre : email);
+                    closeAdminModal();
+                    showToast('¡Sesión iniciada con éxito!');
+                } else {
+                    alert('Error de login: ' + (data.error || 'Credenciales incorrectas'));
+                }
+            } catch (err) {
+                alert('Error al conectar con login.php: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Iniciar Sesión';
+            }
+        }
+
+        function updateAdminSessionPill(active, userName = '') {
+            const pill = document.getElementById('adminSessionPill');
+            const text = document.getElementById('adminSessionText');
+            if (active) {
+                pill.className = 'status-pill active';
+                text.textContent = `Admin: ${userName || 'Conectado'}`;
+            } else {
+                pill.className = 'status-pill inactive';
+                text.textContent = 'Admin: No iniciado';
+            }
+        }
+
+        // --- 15. CLIENT TOKEN MODAL ---
+        function openTokenModal() {
+            document.getElementById('modalClientToken').value = clientToken;
+            document.getElementById('tokenModal').classList.add('active');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.remove('active');
+        }
+
+        function setTokenPreset(tok, name) {
+            document.getElementById('modalClientToken').value = tok;
+            showToast(`Token de ${name} seleccionado`);
+        }
+
+        function saveClientToken() {
+            clientToken = document.getElementById('modalClientToken').value.trim();
+            localStorage.setItem('stadium_client_token', clientToken);
+            updateTokenPill();
+            closeTokenModal();
+            showToast('Token de cliente guardado');
+
+            // Refresh authorization header if active
+            const authRow = Array.from(document.querySelectorAll('#headersTableBody tr')).find(r => r.querySelector('.header-key').value.toLowerCase() === 'authorization');
+            if (authRow) {
+                authRow.querySelector('.header-val').value = 'Bearer ' + clientToken;
+            }
+        }
+
+        function setClientTokenDirect(tok) {
+            clientToken = tok;
+            localStorage.setItem('stadium_client_token', tok);
+            updateTokenPill();
+            showToast('Token actualizado en consola');
+        }
+
+        function updateTokenPill() {
+            const pill = document.getElementById('clientTokenPill');
+            const text = document.getElementById('clientTokenText');
+            if (clientToken) {
+                pill.className = 'status-pill active';
+                const truncated = clientToken.slice(0, 4) + '...' + clientToken.slice(-4);
+                text.textContent = `Token: ${truncated}`;
+            } else {
+                pill.className = 'status-pill inactive';
+                text.textContent = 'Sin Token';
+            }
+        }
+
+        // --- 16. HEALTH CHECK RUNNER ---
+        function openHealthCheckModal() {
+            document.getElementById('healthModal').classList.add('active');
+            renderHealthInitialList();
+        }
+
+        function closeHealthCheckModal() {
+            document.getElementById('healthModal').classList.remove('active');
+        }
+
+        const HEALTH_ENDPOINTS = [
+            { name: 'Slider Público', path: 'slider/listar.php' },
+            { name: 'Catálogo Paginado', path: 'productos-formato.php?limit=2' },
+            { name: 'Categorías Principales', path: 'productos/productos_categorias_principales.php' },
+            { name: 'Marcas Principales', path: 'marcas/principales.php' },
+            { name: 'Deportes Lista', path: 'deportes/lista.php' },
+            { name: 'Proyectos Lista', path: 'proyectos/lista.php' },
+            { name: 'Novedades Lista', path: 'novedades/lista.php?limit=2' },
+            { name: 'Equipamientos Hero', path: 'equipamientos/hero.php' },
+            { name: 'Pisos Deportivos Datos', path: 'pisosdeportivos/datos.php' },
+            { name: 'Tableros y Marcadores', path: 'tablerosmarcadores/datos.php' },
+            { name: 'Artículos Ligero', path: 'articulos.php' },
+            { name: 'Informe de Stock (Variantes)', path: 'informe_stock.php' }
+        ];
+
+        function renderHealthInitialList() {
+            const cont = document.getElementById('healthResultsList');
+            cont.innerHTML = HEALTH_ENDPOINTS.map((ep, i) => `
+                <div class="health-item" id="healthItem_${i}">
+                    <div>
+                        <strong>${ep.name}</strong>
+                        <div style="font-family:var(--font-code); font-size:0.72rem; color:var(--text-dim);">${ep.path}</div>
+                    </div>
+                    <span class="status-badge status-idle" id="healthBadge_${i}">Pendiente</span>
+                </div>
+            `).join('');
+        }
+
+        async function runHealthChecks() {
+            const btn = document.getElementById('btnRunHealth');
+            btn.disabled = true;
+            btn.textContent = 'Ejecutando...';
+
+            const baseUrl = getBaseUrl();
+
+            for (let i = 0; i < HEALTH_ENDPOINTS.length; i++) {
+                const ep = HEALTH_ENDPOINTS[i];
+                const badge = document.getElementById(`healthBadge_${i}`);
+                badge.className = 'status-badge status-idle';
+                badge.textContent = '...';
+
+                try {
+                    const start = performance.now();
+                    const res = await fetch(baseUrl + ep.path);
+                    const dur = Math.round(performance.now() - start);
+
+                    if (res.ok) {
+                        badge.className = 'status-badge status-2xx';
+                        badge.textContent = `${res.status} OK (${dur}ms)`;
+                    } else {
+                        badge.className = 'status-badge status-4xx';
+                        badge.textContent = `${res.status} (${dur}ms)`;
+                    }
+                } catch (err) {
+                    badge.className = 'status-badge status-5xx';
+                    badge.textContent = 'Error';
+                }
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Reejecutar Test';
+            showToast('Health Check completado');
+        }
+
+        // --- 17. TOAST HELPER ---
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            if (typeof text !== 'string') text = String(text ?? '');
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

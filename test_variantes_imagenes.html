@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Productos con Imágenes de Variantes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .variante { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .imagen { margin: 5px 0; }
+        pre { background: #f0f0f0; padding: 10px; overflow-x: auto; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Test API Productos - Imágenes de Variantes</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Obtener producto con variantes e imágenes</h2>
+        <button onclick="testGetProducto()">Obtener Producto ID=1</button>
+        <div id="resultado-get"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Crear producto con variantes e imágenes</h2>
+        <button onclick="testCreateProducto()">Crear Producto de Prueba</button>
+        <div id="resultado-create"></div>
+    </div>
+
+    <script>
+        async function testGetProducto() {
+            try {
+                const response = await fetch('/stadium/api/productos.php?id=1');
+                const data = await response.json();
+                
+                let html = '<h3>Respuesta del API:</h3>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.success && data.producto.variantes) {
+                    html += '<h3>Variantes con Imágenes:</h3>';
+                    data.producto.variantes.forEach(variante => {
+                        html += '<div class="variante">';
+                        html += '<h4>' + variante.nombre + ' (SKU: ' + variante.sku_variante + ')</h4>';
+                        html += '<p>Stock: ' + variante.stock + '</p>';
+                        
+                        if (variante.imagenes && variante.imagenes.length > 0) {
+                            html += '<h5>Imágenes:</h5>';
+                            variante.imagenes.forEach(imagen => {
+                                html += '<div class="imagen">';
+                                html += '• <strong>' + imagen.alt_text + '</strong><br>';
+                                html += '  URL: ' + imagen.url + '<br>';
+                                html += '  Principal: ' + (imagen.es_principal ? 'Sí' : 'No') + '<br>';
+                                html += '  Orden: ' + imagen.orden;
+                                html += '</div>';
+                            });
+                        } else {
+                            html += '<p><em>Sin imágenes</em></p>';
+                        }
+                        html += '</div>';
+                    });
+                }
+                
+                document.getElementById('resultado-get').innerHTML = html;
+            } catch (error) {
+                document.getElementById('resultado-get').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        async function testCreateProducto() {
+            const productoData = {
+                sku: 'TEST-001',
+                nombre: 'Producto de Prueba con Variantes',
+                descripcion: 'Producto para probar funcionalidad de imágenes en variantes',
+                precio: 150.00,
+                stock: 0,
+                esta_activo: 1,
+                destacado: 0,
+                marca_id: 1,
+                deporte: 'Running',
+                variantes: [
+                    {
+                        sku: 'TEST-001-38',
+                        nombre: 'Talle 38',
+                        stock: 5,
+                        precio: null,
+                        activa: 1,
+                        atributos: [
+                            { nombre: 'Talle', valor: '38' }
+                        ],
+                        imagenes: [
+                            {
+                                url: '/uploads/productos/test-001-38-main.jpg',
+                                alt_text: 'Producto Test Talle 38 - Principal'
+                            },
+                            {
+                                url: '/uploads/productos/test-001-38-side.jpg',
+                                alt_text: 'Producto Test Talle 38 - Lateral'
+                            }
+                        ]
+                    },
+                    {
+                        sku: 'TEST-001-39',
+                        nombre: 'Talle 39',
+                        stock: 8,
+                        precio: 160.00,
+                        activa: 1,
+                        atributos: [
+                            { nombre: 'Talle', valor: '39' }
+                        ],
+                        imagenes: [
+                            {
+                                url: '/uploads/productos/test-001-39-main.jpg',
+                                alt_text: 'Producto Test Talle 39 - Principal'
+                            }
+                        ]
+                    }
+                ]
+            };
+            
+            try {
+                const response = await fetch('/stadium/api/productos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productoData)
+                });
+                
+                const data = await response.json();
+                
+                let html = '<h3>Respuesta de Creación:</h3>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.success) {
+                    html += '<p style="color: green;">¡Producto creado exitosamente con ID: ' + data.id + '!</p>';
+                    html += '<button onclick="testGetProducto(' + data.id + ')">Ver Producto Creado</button>';
+                }
+                
+                document.getElementById('resultado-create').innerHTML = html;
+            } catch (error) {
+                document.getElementById('resultado-create').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

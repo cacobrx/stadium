@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API MercadoPago</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1000px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 150px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .result-content {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .payment-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: #009ee3;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .payment-link:hover {
+            background: #0082c3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 158, 227, 0.4);
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Test API MercadoPago</h1>
+            <p>Prueba la integración con MercadoPago</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <p><strong>📍 Endpoint:</strong> <code id="endpointUrl">index.php</code></p>
+                <p><strong>🔧 Método:</strong> POST</p>
+                <p><strong>📝 Content-Type:</strong> application/json</p>
+            </div>
+
+            <div class="section">
+                <h2>⚙️ Configuración</h2>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border: 2px solid #e0e0e0;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 600; color: #333;">
+                        <span>Modo de operación:</span>
+                        <select id="modeSelector" style="padding: 8px 15px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; background: white;">
+                            <option value="sandbox">🧪 Sandbox (Testing)</option>
+                            <option value="production">🚀 Producción</option>
+                        </select>
+                    </label>
+                    <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                        <strong>Sandbox:</strong> Usa el token de prueba para testing.<br>
+                        <strong>Producción:</strong> Usa el token real para pagos reales.
+                    </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📄 JSON Request</h2>
+                <textarea id="jsonInput" placeholder="Ingresa el JSON aquí...">{
+  "items": [
+    {
+      "title": "Stadium Ped #1234",
+      "quantity": 1,
+      "unit_price": 450.5
+    }
+  ],
+  "payer": {
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "email": "juan.perez@example.com",
+    "phone": {
+      "area_code": "11",
+      "number": "1533344455"
+    },
+    "identification": {
+      "type": "DNI",
+      "number": "30123456"
+    },
+    "address": {
+      "street_name": "Calle Falsa 123 Buenos Aires"
+    }
+  },
+  "back_urls": {
+    "success": "https://imprimifotos.com.ar/procesar-pago?id=1234",
+    "failure": "https://imprimifotos.com.ar/pagos_fail?id=1234",
+    "pending": "https://imprimifotos.com.ar/pagos_pend?id=1234"
+  }
+}</textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="sendBtn" onclick="sendRequest()">
+                    <span id="btnText">🚀 Enviar Request</span>
+                </button>
+                <button class="btn-secondary" onclick="clearResult()">🗑️ Limpiar</button>
+            </div>
+
+            <div class="section">
+                <h2>📦 Respuesta</h2>
+                <div id="result" class="result">
+                    <div class="result-content">Esperando request...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL del endpoint de la API
+        const endpointUrl = 'https://stadium.planbsistemas.com.ar/api/mercadopago/index.php';
+        document.getElementById('endpointUrl').textContent = endpointUrl;
+
+        async function sendRequest() {
+            const btn = document.getElementById('sendBtn');
+            const btnText = document.getElementById('btnText');
+            const resultDiv = document.getElementById('result');
+            const jsonInput = document.getElementById('jsonInput').value;
+            const mode = document.getElementById('modeSelector').value;
+
+            // Validar JSON
+            let jsonData;
+            try {
+                jsonData = JSON.parse(jsonInput);
+                // Agregar el modo al JSON
+                jsonData.mode = mode;
+            } catch (e) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <div class="result-content">❌ Error en el JSON:\n${e.message}</div>
+                `;
+                return;
+            }
+
+            // Deshabilitar botón y mostrar loading
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loader"></span> Procesando...';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<div class="result-content">⏳ Enviando request...</div>';
+
+            try {
+                const response = await fetch(endpointUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    
+                    // Determinar qué link usar según el modo
+                    const isProduction = data.mode === 'production';
+                    const paymentLink = isProduction ? data.init_point : data.sandbox_init_point;
+                    const modeIcon = isProduction ? '🚀' : '🧪';
+                    const modeName = isProduction ? 'Producción' : 'Sandbox';
+                    
+                    resultDiv.innerHTML = `
+                        <div class="result-content">✅ Preferencia creada exitosamente!
+
+<strong>Modo:</strong> ${modeIcon} ${modeName}
+<strong>Preference ID:</strong> ${data.preference_id}
+</div>
+                        <div style="margin-top: 15px; padding: 15px; background: ${isProduction ? '#fff3cd' : '#d1ecf1'}; border-radius: 8px; border-left: 4px solid ${isProduction ? '#ffc107' : '#17a2b8'};">
+                            <strong style="color: #333;">${modeIcon} Link de Pago ${modeName}:</strong><br>
+                            <code style="display: block; margin-top: 8px; padding: 8px; background: white; border-radius: 4px; font-size: 12px; word-break: break-all;">${paymentLink}</code>
+                        </div>
+                        ${data.sandbox_init_point && data.init_point ? `
+                        <div style="margin-top: 10px; padding: 15px; background: #e2e3e5; border-radius: 8px; border-left: 4px solid #6c757d;">
+                            <strong style="color: #333;">ℹ️ Link alternativo (${isProduction ? 'Sandbox' : 'Producción'}):</strong><br>
+                            <code style="display: block; margin-top: 8px; padding: 8px; background: white; border-radius: 4px; font-size: 11px; word-break: break-all;">${isProduction ? data.sandbox_init_point : data.init_point}</code>
+                        </div>
+                        ` : ''}
+                        ${paymentLink ? `<a href="${paymentLink}" target="_blank" class="payment-link">${modeIcon} Ir a MercadoPago (${modeName})</a>` : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <div class="result-content">❌ Error:\n${data.error || 'Error desconocido'}\n\nRespuesta completa:\n${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <div class="result-content">❌ Error de conexión:\n${error.message}\n\nAsegúrate de que el servidor esté funcionando correctamente.</div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = '🚀 Enviar Request';
+            }
+        }
+
+        function clearResult() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<div class="result-content">Esperando request...</div>';
+        }
+
+        // Permitir formatear JSON con Ctrl+Shift+F
+        document.getElementById('jsonInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+                e.preventDefault();
+                try {
+                    const formatted = JSON.stringify(JSON.parse(this.value), null, 2);
+                    this.value = formatted;
+                } catch (err) {
+                    alert('JSON inválido');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

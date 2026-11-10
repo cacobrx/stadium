@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API Productos</title>
+</head>
+<body>
+    <h1>Test API Productos</h1>
+    <button onclick="testAPI()">Test Create Product</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const testData = {
+                sku: "TEST-001",
+                nombre: "Producto de Prueba",
+                descripcion: "Descripción de prueba",
+                precio: 100.00,
+                stock: 10,
+                esta_activo: 1,
+                destacado: 0,
+                deporte: "Fútbol",
+                categorias: [],
+                colecciones: [],
+                imagenes: [],
+                variantes: []
+            };
+
+            try {
+                const response = await fetch('/stadium/api/productos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const result = await response.text();
+                document.getElementById('result').innerHTML = `
+                    <h3>Respuesta:</h3>
+                    <p>Status: ${response.status}</p>
+                    <pre>${result}</pre>
+                `;
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

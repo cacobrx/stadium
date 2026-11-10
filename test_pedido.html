@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Crear Pedido Stadium</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        h1 { text-align: center; margin-bottom: 20px; color: #1a1a2e; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        .section h2 { font-size: 16px; color: #555; border-bottom: 2px solid #4361ee; padding-bottom: 6px; margin-bottom: 14px; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+        .field { flex: 1; min-width: 180px; }
+        .field label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 3px; }
+        .field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .field input:focus, .field select:focus { outline: none; border-color: #4361ee; box-shadow: 0 0 0 2px rgba(67,97,238,.15); }
+        .checks { display: flex; gap: 20px; flex-wrap: wrap; }
+        .checks label { font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .item-card { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; margin-bottom: 10px; }
+        .item-card .row { margin-bottom: 6px; }
+        .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+        .btn-row { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        button { padding: 10px 28px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: .2s; }
+        .btn-send { background: #4361ee; color: #fff; }
+        .btn-send:hover { background: #3a56d4; }
+        .btn-reset { background: #e0e0e0; color: #333; }
+        .btn-reset:hover { background: #ccc; }
+        #result { margin-top: 16px; padding: 16px; border-radius: 8px; display: none; font-size: 14px; }
+        #result.success { display: block; background: #d4edda; border: 1px solid #b7dfc5; color: #155724; }
+        #result.error { display: block; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        #result pre { white-space: pre-wrap; word-break: break-all; margin-top: 8px; font-size: 13px; }
+        .json-preview { background: #1a1a2e; color: #a8e6cf; padding: 14px; border-radius: 6px; font-size: 12px; max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid #ccc; border-top-color: #4361ee; border-radius: 50%; animation: spin .6s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+        .tab { padding: 10px 24px; background: transparent; border: none; cursor: pointer; font-size: 15px; font-weight: 600; color: #666; transition: .2s; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .tab:hover { color: #4361ee; }
+        .tab.active { color: #4361ee; border-bottom-color: #4361ee; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .json-editor { width: 100%; min-height: 400px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; background: #f9f9f9; }
+        .json-editor:focus { outline: none; border-color: #4361ee; box-shadow: 0 0 0 2px rgba(67,97,238,.15); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 Test Crear Pedido - Stadium</h1>
+        
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('form')">📝 Formulario</button>
+            <button class="tab" onclick="switchTab('json')">{ } JSON Directo</button>
+        </div>
+
+        <!-- TAB: FORMULARIO -->
+        <div id="formTab" class="tab-content active">
+
+        <!-- MODO -->
+        <div class="section">
+            <h2>Configuración</h2>
+            <div class="row">
+                <div class="field">
+                    <label>Modo</label>
+                    <select id="modo">
+                        <option value="sandbox" selected>Sandbox</option>
+                        <option value="production">Production</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Retorno Automático</label>
+                    <select id="retornoAutomatico">
+                        <option value="approved" selected>Approved</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ITEM -->
+        <div class="section">
+            <h2>Item del Pedido</h2>
+            <p style="margin-bottom:10px; font-size:13px; color:#666;">
+                💡 El SKU debe existir en la tabla <strong>productos</strong>. 
+                <span style="color:#888;">Ejemplos: Aro-Doméstico1, T-B-Elec-Multi, Aro-Pro-FIBA, BG4500</span>
+            </p>
+            <div class="item-card">
+                <div class="row">
+                    <div class="field" style="flex:2">
+                        <label>SKU del Producto</label>
+                        <input id="item_id" value="Aro-Doméstico1" placeholder="Ejemplo: Aro-Doméstico1">
+                    </div>
+                    <div class="field">
+                        <label>Moneda</label>
+                        <select id="item_moneda"><option value="ARS" selected>ARS</option><option value="USD">USD</option></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:3">
+                        <label>Título</label>
+                        <input id="item_titulo" value="Aro De Básquet Para Uso Doméstico Stadium">
+                    </div>
+                    <div class="field">
+                        <label>Cantidad</label>
+                        <input id="item_cantidad" type="number" min="1" value="1">
+                    </div>
+                    <div class="field">
+                        <label>Precio Unitario</label>
+                        <input id="item_precio" type="number" min="0" value="70000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:3">
+                        <label>Descripción</label>
+                        <input id="item_descripcion" value="Aro de básquet fabricado en hierro macizo, diseñado para uso doméstico y recreativo. Cuenta con medidas reglamentarias y 12 enganches para red, ofreciendo una correcta sujeción y una experiencia de juego segura y duradera.">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field" style="flex:3">
+                        <label>URL Imagen</label>
+                        <input id="item_imagen" value="https://stadium.planbsistemas.com.ar/uploads/productos/Aro-de-basquet-domestico-1-6941849ca88c52.56488114.webp">
+                    </div>
+                    <div style="display:flex;align-items:flex-end;">
+                        <img id="item_img_preview" class="item-img" src="https://stadium.planbsistemas.com.ar/uploads/productos/Aro-de-basquet-domestico-1-6941849ca88c52.56488114.webp" alt="preview">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGADOR -->
+        <div class="section">
+            <h2>Datos del Pagador</h2>
+            <div class="row">
+                <div class="field"><label>Nombre</label><input id="pag_nombre" value="lucas"></div>
+                <div class="field"><label>Apellido</label><input id="pag_apellido" value="bragagnolo"></div>
+                <div class="field"><label>Email</label><input id="pag_email" type="email" value="lucasbragagnolo6@gmail.com"></div>
+            </div>
+            <div class="row">
+                <div class="field"><label>Cód. Área</label><input id="pag_codarea" value="11"></div>
+                <div class="field"><label>Teléfono</label><input id="pag_telefono" value="02325420041"></div>
+                <div class="field"><label>Tipo Doc.</label>
+                    <select id="pag_tipodoc"><option value="DNI" selected>DNI</option><option value="CUIT">CUIT</option><option value="CUIL">CUIL</option></select>
+                </div>
+                <div class="field"><label>Nro. Doc.</label><input id="pag_nrodoc" value="39.413.476"></div>
+            </div>
+            <div class="row">
+                <div class="field" style="flex:2"><label>Calle</label><input id="pag_calle" value="quintana 581, san andres de giles"></div>
+                <div class="field"><label>Número</label><input id="pag_nrodir" type="number" value="581"></div>
+                <div class="field"><label>Código Postal</label><input id="pag_cp" value="6720"></div>
+            </div>
+        </div>
+
+        <!-- ENVÍO -->
+        <div class="section">
+            <h2>Envío</h2>
+            <div class="row">
+                <div class="field">
+                    <label>Tipo</label>
+                    <select id="envio_tipo">
+                        <option value="domicilio" selected>Domicilio</option>
+                        <option value="retiro">Retiro en local</option>
+                    </select>
+                </div>
+                <div class="field"><label>Nombre</label><input id="envio_nombre" value="Envío a domicilio"></div>
+                <div class="field"><label>Costo</label><input id="envio_costo" type="number" min="0" value="2500"></div>
+            </div>
+        </div>
+
+        <!-- PREFERENCIAS -->
+        <div class="section">
+            <h2>Preferencias de Checkout</h2>
+            <div class="checks">
+                <label><input type="checkbox" id="pref_ofertas" checked> Recibir ofertas</label>
+                <label><input type="checkbox" id="pref_whatsapp" checked> Recibir WhatsApp</label>
+                <label><input type="checkbox" id="pref_cuenta" checked> Crear cuenta</label>
+            </div>
+        </div>
+
+        <!-- ACCIONES -->
+        <div class="btn-row">
+            <button class="btn-send" onclick="enviarPedido()">Enviar Pedido</button>
+            <button class="btn-reset" onclick="verJSON()">Ver JSON</button>
+        </div>
+
+        </div>
+        <!-- FIN TAB FORMULARIO -->
+
+        <!-- TAB: JSON DIRECTO -->
+        <div id="jsonTab" class="tab-content">
+            <div class="section">
+                <h2>Editor JSON</h2>
+                <p style="margin-bottom:10px; font-size:13px; color:#666;">
+                    Pega o edita directamente el JSON del pedido aquí. Puedes probar con cualquier JSON válido.
+                </p>
+                <textarea id="jsonEditor" class="json-editor" placeholder='Pega aquí tu JSON o haz clic en "Cargar Ejemplo"'></textarea>
+            </div>
+            
+            <div class="btn-row">
+                <button class="btn-send" onclick="enviarJSON()">Enviar JSON</button>
+                <button class="btn-reset" onclick="cargarEjemplo()">Cargar Ejemplo</button>
+                <button class="btn-reset" onclick="formatearJSON()">Formatear</button>
+            </div>
+        </div>
+        <!-- FIN TAB JSON -->
+
+        <div class="spinner" id="spinner"></div>
+        <div id="result"></div>
+        <div class="json-preview" id="jsonPreview" style="display:none"></div>
+    </div>
+
+    <script>
+        const V = id => document.getElementById(id).value;
+        const C = id => document.getElementById(id).checked;
+
+        // Cambiar entre tabs
+        function switchTab(tab) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            
+            // Mostrar el tab seleccionado
+            if (tab === 'form') {
+                document.getElementById('formTab').classList.add('active');
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            } else {
+                document.getElementById('jsonTab').classList.add('active');
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                // Cargar el JSON actual del formulario
+                document.getElementById('jsonEditor').value = JSON.stringify(buildJSON(), null, 2);
+            }
+        }
+
+        // Cargar JSON de ejemplo
+        function cargarEjemplo() {
+            document.getElementById('jsonEditor').value = JSON.stringify(buildJSON(), null, 2);
+        }
+
+        // Formatear JSON
+        function formatearJSON() {
+            const editor = document.getElementById('jsonEditor');
+            try {
+                const obj = JSON.parse(editor.value);
+                editor.value = JSON.stringify(obj, null, 2);
+            } catch (e) {
+                alert('JSON inválido: ' + e.message);
+            }
+        }
+
+        // Enviar JSON directo
+        async function enviarJSON() {
+            const editor = document.getElementById('jsonEditor');
+            const result = document.getElementById('result');
+            const spinner = document.getElementById('spinner');
+            
+            result.style.display = 'none';
+            result.className = '';
+            spinner.style.display = 'block';
+
+            let payload;
+            try {
+                payload = JSON.parse(editor.value);
+            } catch (e) {
+                spinner.style.display = 'none';
+                result.className = 'error';
+                result.innerHTML = `<strong>❌ Error de sintaxis JSON</strong><pre>${e.message}</pre>`;
+                return;
+            }
+
+            try {
+                const res = await fetch('/stadium/api/pedidos/crear.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                spinner.style.display = 'none';
+
+                if (data.success) {
+                    result.className = 'success';
+                    result.innerHTML = `<strong>✅ ${data.message}</strong><pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                } else {
+                    result.className = 'error';
+                    result.innerHTML = `<strong>❌ ${data.message}</strong><pre>${data.error || ''}</pre>`;
+                }
+            } catch (err) {
+                spinner.style.display = 'none';
+                result.className = 'error';
+                result.innerHTML = `<strong>❌ Error de conexión</strong><pre>${err.message}</pre>`;
+            }
+        }
+
+        // Preview de imagen
+        document.getElementById('item_imagen').addEventListener('input', e => {
+            document.getElementById('item_img_preview').src = e.target.value;
+        });
+
+        function buildJSON() {
+            return {
+                modo: V('modo'),
+                items: [{
+                    id: V('item_id'), // SKU del producto en la tabla productos
+                    titulo: V('item_titulo'),
+                    cantidad: parseInt(V('item_cantidad')) || 1,
+                    precioUnitario: parseFloat(V('item_precio')) || 0,
+                    imagenUrl: V('item_imagen'),
+                    descripcion: V('item_descripcion'),
+                    moneda: V('item_moneda')
+                }],
+                pagador: {
+                    email: V('pag_email'),
+                    nombre: V('pag_nombre'),
+                    apellido: V('pag_apellido'),
+                    telefono: {
+                        codigoArea: parseInt(V('pag_codarea')) || 0,
+                        numero: V('pag_telefono')
+                    },
+                    identificacion: {
+                        tipo: V('pag_tipodoc'),
+                        numero: V('pag_nrodoc')
+                    },
+                    direccion: {
+                        calle: V('pag_calle'),
+                        numero: parseInt(V('pag_nrodir')) || 0,
+                        codigoPostal: V('pag_cp')
+                    }
+                },
+                envio: {
+                    tipo: V('envio_tipo'),
+                    nombre: V('envio_nombre'),
+                    costo: parseFloat(V('envio_costo')) || 0
+                },
+                preferenciasCheckout: {
+                    recibirOfertas: C('pref_ofertas'),
+                    recibirWhatsApp: C('pref_whatsapp'),
+                    crearCuenta: C('pref_cuenta')
+                },
+                retornoAutomatico: V('retornoAutomatico')
+            };
+        }
+
+        function verJSON() {
+            const pre = document.getElementById('jsonPreview');
+            pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+            pre.textContent = JSON.stringify(buildJSON(), null, 2);
+        }
+
+        async function enviarPedido() {
+            const result = document.getElementById('result');
+            const spinner = document.getElementById('spinner');
+            result.style.display = 'none';
+            result.className = '';
+            spinner.style.display = 'block';
+
+            const payload = buildJSON();
+
+            try {
+                const res = await fetch('/stadium/api/pedidos/crear.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                spinner.style.display = 'none';
+
+                if (data.success) {
+                    result.className = 'success';
+                    result.innerHTML = `<strong>✅ ${data.message}</strong><pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                } else {
+                    result.className = 'error';
+                    result.innerHTML = `<strong>❌ ${data.message}</strong><pre>${data.error || ''}</pre>`;
+                }
+            } catch (err) {
+                spinner.style.display = 'none';
+                result.className = 'error';
+                result.innerHTML = `<strong>❌ Error de conexión</strong><pre>${err.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>

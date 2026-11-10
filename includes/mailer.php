@@ -1,0 +1,109 @@
+<?php
+// includes/mailer.php
+// Envío de correo usando la configuración guardada en la tabla `configuracion`
+// (Utilidades > Configuración). Si un valor no está cargado, usa config/mail.php.
+
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/phpmailer/SMTP.php';
+require_once __DIR__ . '/phpmailer/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+
+/**
+ * Lee todas las claves de la tabla configuracion.
+ */
+function obtenerConfiguracion(?mysqli $conn = null): array {
+    $cerrar = false;
+    if ($conn === null) {
+        $conn = get_database_connection();
+        $cerrar = true;
+    }
+    $config = [];
+    $res = @$conn->query("SELECT clave, valor FROM configuracion");
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $config[$row['clave']] = $row['valor'];
+        }
+    }
+    if ($cerrar) {
+        $conn->close();
+    }
+    return $config;
+}
+
+/**
+ * Configuración SMTP efectiva (tabla configuracion con respaldo en config/mail.php).
+ */
+function obtenerConfigMail(?mysqli $conn = null): array {
+    if (file_exists(__DIR__ . '/../config/mail.php')) {
+        require_once __DIR__ . '/../config/mail.php';
+    }
+    $c = obtenerConfiguracion($conn);
+    $v = function (string $clave, string $const, $default = '') use ($c) {
+        if (isset($c[$clave]) && $c[$clave] !== '') {
+            return $c[$clave];
+        }
+        return defined($const) ? constant($const) : $default;
+    };
+    return [
+        'host'       => $v('mail_host', 'MAIL_HOST'),
+        'port'       => (int) $v('mail_port', 'MAIL_PORT', 465),
+        'username'   => $v('mail_username', 'MAIL_USERNAME'),
+        'password'   => $v('mail_password', 'MAIL_PASSWORD'),
+        'encryption' => strtolower($v('mail_encryption', 'MAIL_ENCRYPTION', 'ssl')),
+        'from_email' => $v('mail_from_email', 'MAIL_FROM_EMAIL'),
+        'from_name'  => $v('mail_from_name', 'MAIL_FROM_NAME', 'Stadium'),
+        'presupuestos_destino' => $c['mail_presupuestos_destino'] ?? 'info@stadiumdeportes.com',
+    ];
+}
+
+/**
+ * Envía un correo HTML. Devuelve ['ok' => bool, 'error' => string|null].
+ * $cfg permite pasar una configuración puntual (por ejemplo, para probarla antes de guardar).
+ */
+function enviarCorreo(string $para, string $asunto, string $html, ?string $replyTo = null, ?string $replyToNombre = null, ?array $cfg = null): array {
+    $cfg = $cfg ?? obtenerConfigMail();
+    try {
+        if (empty($cfg['host'])) {
+            throw new Exception('No hay servidor SMTP configurado');
+        }
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host     = $cfg['host'];
+        $mail->Port     = (int) $cfg['port'];
+        $mail->CharSet  = 'UTF-8';
+        $mail->Timeout  = 15;
+        $mail->SMTPAuth = $cfg['username'] !== '';
+        if ($mail->SMTPAuth) {
+            $mail->Username = $cfg['username'];
+            $mail->Password = $cfg['password'];
+        }
+        if ($cfg['encryption'] === 'ssl') {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        } elseif ($cfg['encryption'] === 'tls') {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        } else {
+            $mail->SMTPSecure = '';
+            $mail->SMTPAutoTLS = false;
+        }
+
+        $from = $cfg['from_email'] ?: $cfg['username'];
+        $mail->setFrom($from, $cfg['from_name']);
+        $mail->addAddress($para);
+        if ($replyTo && filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+            $mail->addReplyTo($replyTo, $replyToNombre ?? '');
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $asunto;
+        $mail->Body    = $html;
+        $mail->AltBody = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '<br />', '</tr>', '</p>'], "\n", $html)), ENT_QUOTES, 'UTF-8'));
+        $mail->send();
+        return ['ok' => true, 'error' => null];
+    } catch (\Throwable $e) {
+        $err = isset($mail) && $mail->ErrorInfo ? $mail->ErrorInfo : $e->getMessage();
+        error_log('enviarCorreo: ' . $err);
+        return ['ok' => false, 'error' => $err];
+    }
+}

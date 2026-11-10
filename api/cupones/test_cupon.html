@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test — Validar Cupón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .card { max-width: 600px; margin: 2rem auto; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 6px; font-size: .85rem; max-height: 320px; overflow: auto; }
+        .result-ok  { border-left: 4px solid #198754; }
+        .result-err { border-left: 4px solid #dc3545; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <strong>Test — POST /api/cupones/cupon.php</strong>
+        </div>
+        <div class="card-body">
+
+            <div class="mb-3">
+                <label class="form-label">Código de cupón</label>
+                <input id="codigo" class="form-control text-uppercase" value="PRIMERACOMPRA" placeholder="Ej: VERANO20">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Subtotal ($)</label>
+                <input id="subtotal" type="number" class="form-control" value="319600" min="0" step="0.01">
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-success" onclick="enviar()">Validar cupón</button>
+                <button class="btn btn-outline-secondary" onclick="verJson()">Ver JSON</button>
+                <button class="btn btn-outline-danger" onclick="limpiar()">Limpiar</button>
+            </div>
+
+            <div id="respArea" class="mt-4 d-none">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <strong>Respuesta</strong>
+                    <span id="respBadge" class="badge">—</span>
+                </div>
+                <pre id="respBody"></pre>
+
+                <!-- Resumen visual cuando es exitoso -->
+                <div id="resumen" class="d-none alert result-ok">
+                    <div class="row text-center g-2">
+                        <div class="col-4">
+                            <div class="text-muted small">Importe inicial</div>
+                            <div class="fs-5 fw-bold" id="rImporteInicial"></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Descuento (<span id="rPorcentaje"></span>%)</div>
+                            <div class="fs-5 fw-bold text-danger" id="rDescuento"></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Importe final</div>
+                            <div class="fs-5 fw-bold text-success" id="rImporteFinal"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function buildPayload() {
+    return {
+        codigo:   document.getElementById('codigo').value.trim().toUpperCase(),
+        subtotal: parseFloat(document.getElementById('subtotal').value) || 0
+    };
+}
+
+function verJson() {
+    mostrar(null, JSON.stringify(buildPayload(), null, 2));
+}
+
+async function enviar() {
+    const btn = document.querySelector('button.btn-success');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+
+    try {
+        const res = await fetch('./cupon.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(buildPayload())
+        });
+
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = null; }
+
+        const pretty = data ? JSON.stringify(data, null, 2) : text;
+        mostrar(res.status, pretty);
+
+        // Mostrar resumen si fue exitoso
+        const resEl = document.getElementById('resumen');
+        if (data && data.success) {
+            document.getElementById('rImporteInicial').textContent = '$' + fmt(data.importe_inicial);
+            document.getElementById('rDescuento').textContent      = '- $' + fmt(data.descuento_aplicado);
+            document.getElementById('rPorcentaje').textContent     = data.porcentaje;
+            document.getElementById('rImporteFinal').textContent   = '$' + fmt(data.importe_final);
+            resEl.classList.remove('d-none');
+        } else {
+            resEl.classList.add('d-none');
+        }
+
+    } catch (err) {
+        mostrar(null, 'Error de red: ' + err.message);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Validar cupón';
+    }
+}
+
+function fmt(n) {
+    return Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2 });
+}
+
+function mostrar(status, body) {
+    const area  = document.getElementById('respArea');
+    const badge = document.getElementById('respBadge');
+    const bodyEl = document.getElementById('respBody');
+    area.classList.remove('d-none');
+    bodyEl.textContent = body;
+    if (status === null) {
+        badge.className = 'badge bg-secondary'; badge.textContent = 'JSON';
+    } else if (status >= 200 && status < 300) {
+        badge.className = 'badge bg-success'; badge.textContent = status + ' OK';
+    } else {
+        badge.className = 'badge bg-danger'; badge.textContent = status + ' Error';
+    }
+}
+
+function limpiar() {
+    document.getElementById('respArea').classList.add('d-none');
+    document.getElementById('resumen').classList.add('d-none');
+}
+</script>
+</body>
+</html>

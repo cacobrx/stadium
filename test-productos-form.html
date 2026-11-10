@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Formulario de Productos - Stadium</title>
+    
+    <!-- React y Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- CSS del formulario -->
+    <link rel="stylesheet" href="frontend/ProductosForm.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .test-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-test {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-test:hover {
+            background: #e9ecef;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Test del Formulario de Productos</h1>
+            <p>Prueba del componente ProductosForm con categorías y colecciones</p>
+            
+            <div class="test-actions">
+                <button class="btn-test" onclick="testAPIs()">Probar APIs</button>
+                <button class="btn-test" onclick="testLogin()">Simular Login</button>
+                <button class="btn-test" onclick="clearConsole()">Limpiar Console</button>
+            </div>
+            
+            <div id="debug-info" class="debug-info" style="display: none;"></div>
+        </div>
+        
+        <div id="app-root"></div>
+    </div>
+
+    <script type="text/babel">
+        // Importar el componente ProductosForm
+        const { useState, useEffect } = React;
+
+        // Componente ProductosForm (copiado y adaptado)
+        const ProductosForm = ({ productoId = null, onSuccess, onCancel }) => {
+          const [formData, setFormData] = useState({
+            sku: '',
+            nombre: '',
+            descripcion: '',
+            precio: '',
+            precio_descuento: '',
+            stock: '',
+            esta_activo: true,
+            destacado: false,
+            marca_id: '',
+            deporte: '',
+            peso: '',
+            alto: '',
+            ancho: '',
+            profundidad: '',
+            categorias: [],
+            colecciones: [],
+            imagenes: [],
+            atributos: [],
+            variantes: []
+          });
+
+          const [marcas, setMarcas] = useState([]);
+          const [categorias, setCategorias] = useState([]);
+          const [colecciones, setColecciones] = useState([]);
+          const [isLoading, setIsLoading] = useState(false);
+          const [activeTab, setActiveTab] = useState('general');
+          const [debugData, setDebugData] = useState('');
+
+          // Cargar datos iniciales
+          useEffect(() => {
+            cargarDatosIniciales();
+            if (productoId) {
+              cargarProducto(productoId);
+            }
+          }, [productoId]);
+
+          const cargarDatosIniciales = async () => {
+            try {
+              const debug = ['=== Cargando datos iniciales ==='];
+              
+              // Cargar marcas, categorías y colecciones usando las APIs simples
+              const [marcasRes, categoriasRes, coleccionesRes] = await Promise.all([
+                fetch('/stadium/api-marcas-simple.php'),
+                fetch('/stadium/api-categorias-simple.php'),
+                fetch('/stadium/api-colecciones-simple.php')
+              ]);
+
+              const marcasData = await marcasRes.json();
+              const categoriasData = await categoriasRes.json();
+              const coleccionesData = await coleccionesRes.json();
+
+              debug.push(`Marcas: ${JSON.stringify(marcasData)}`);
+              debug.push(`Categorias: ${JSON.stringify(categoriasData)}`);
+              debug.push(`Colecciones: ${JSON.stringify(coleccionesData)}`);
+
+              if (marcasData.success) setMarcas(marcasData.marcas || []);
+              if (categoriasData.success) setCategorias(categoriasData.categorias || []);
+              if (coleccionesData.success) setColecciones(coleccionesData.colecciones || []);
+              
+              setDebugData(debug.join('\n'));
+              updateDebugInfo(debug.join('\n'));
+              
+            } catch (error) {
+              const errorMsg = `Error cargando datos iniciales: ${error.message}`;
+              console.error(errorMsg);
+              setDebugData(errorMsg);
+              updateDebugInfo(errorMsg);
+            }
+          };
+
+          const cargarProducto = async (id) => {
+            try {
+              setIsLoading(true);
+              const response = await fetch(`/stadium/api-productos-simple.php?id=${id}`);
+              const data = await response.json();
+              
+              if (data.success) {
+                setFormData({
+                  ...data.producto,
+                  categorias: data.producto.categorias?.map(c => c.id) || [],
+                  colecciones: data.producto.colecciones?.map(c => c.id) || [],
+                  variantes: data.producto.variantes || []
+                });
+              }
+            } catch (error) {
+              console.error('Error cargando producto:', error);
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          const handleInputChange = (e) => {
+            const { name, value, type, checked } = e.target;
+            setFormData(prev => ({
+              ...prev,
+              [name]: type === 'checkbox' ? checked : value
+            }));
+          };
+
+          const handleSelectChange = (name, values) => {
+            setFormData(prev => ({
+              ...prev,
+              [name]: values
+            }));
+          };
+
+          const handleSubmit = async (e) => {
+            e.preventDefault();
+            setIsLoading(true);
+
+            try {
+              const url = '/stadium/api-productos-simple.php';
+              const method = productoId ? 'PUT' : 'POST';
+              const payload = productoId ? { ...formData, id: productoId } : formData;
+
+              console.log('Enviando datos:', payload);
+
+              const response = await fetch(url, {
+                method,
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+              });
+
+              const data = await response.json();
+
+              if (data.success) {
+                alert(productoId ? 'Producto actualizado exitosamente' : 'Producto creado exitosamente');
+                if (onSuccess) onSuccess(data);
+              } else {
+                alert('Error: ' + data.error);
+              }
+            } catch (error) {
+              console.error('Error guardando producto:', error);
+              alert('Error guardando producto');
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          if (isLoading && productoId) {
+            return React.createElement('div', { className: 'loading' }, 'Cargando producto...');
+          }
+
+          return React.createElement('div', { className: 'productos-form' }, [
+            // Header
+            React.createElement('div', { 
+              key: 'header',
+              className: 'form-header' 
+            }, [
+              React.createElement('h2', { key: 'title' }, productoId ? 'Editar Producto' : 'Nuevo Producto'),
+              React.createElement('div', { 
+                key: 'actions',
+                className: 'form-actions' 
+              }, [
+                React.createElement('button', {
+                  key: 'cancel',
+                  type: 'button',
+                  onClick: onCancel,
+                  className: 'btn btn-secondary'
+                }, 'Cancelar'),
+                React.createElement('button', {
+                  key: 'submit',
+                  type: 'submit',
+                  form: 'producto-form',
+                  className: 'btn btn-primary',
+                  disabled: isLoading
+                }, isLoading ? 'Guardando...' : 'Guardar')
+              ])
+            ]),
+
+            // Tabs
+            React.createElement('div', { 
+              key: 'tabs',
+              className: 'form-tabs' 
+            }, [
+              React.createElement('button', {
+                key: 'tab-general',
+                type: 'button',
+                className: `tab-button ${activeTab === 'general' ? 'active' : ''}`,
+                onClick: () => setActiveTab('general')
+              }, 'Información General'),
+              React.createElement('button', {
+                key: 'tab-debug',
+                type: 'button',
+                className: `tab-button ${activeTab === 'debug' ? 'active' : ''}`,
+                onClick: () => setActiveTab('debug')
+              }, 'Debug')
+            ]),
+
+            // Form
+            React.createElement('form', {
+              key: 'form',
+              id: 'producto-form',
+              onSubmit: handleSubmit
+            }, [
+              // Tab General
+              activeTab === 'general' && React.createElement('div', { 
+                key: 'tab-general',
+                className: 'tab-content' 
+              }, [
+                React.createElement('div', { 
+                  key: 'form-grid',
+                  className: 'form-grid' 
+                }, [
+                  // Campos básicos
+                  React.createElement('div', { 
+                    key: 'sku',
+                    className: 'form-group' 
+                  }, [
+                    React.createElement('label', { 
+                      key: 'label',
+                      htmlFor: 'sku' 
+                    }, 'SKU *'),
+                    React.createElement('input', {
+                      key: 'input',
+                      type: 'text',
+                      id: 'sku',
+                      name: 'sku',
+                      value: formData.sku,
+                      onChange: handleInputChange,
+                      required: true
+                    })
+                  ]),
+
+                  React.createElement('div', { 
+                    key: 'nombre',
+                    className: 'form-group' 
+                  }, [
+                    React.createElement('label', { 
+                      key: 'label',
+                      htmlFor: 'nombre' 
+                    }, 'Nombre *'),
+                    React.createElement('input', {
+                      key: 'input',
+                      type: 'text',
+                      id: 'nombre',
+                      name: 'nombre',
+                      value: formData.nombre,
+                      onChange: handleInputChange,
+                      required: true
+                    })
+                  ]),
+
+                  React.createElement('div', { 
+                    key: 'precio',
+                    className: 'form-group' 
+                  }, [
+                    React.createElement('label', { 
+                      key: 'label',
+                      htmlFor: 'precio' 
+                    }, 'Precio *'),
+                    React.createElement('input', {
+                      key: 'input',
+                      type: 'number',
+                      id: 'precio',
+                      name: 'precio',
+                      step: '0.01',
+                      value: formData.precio,
+                      onChange: handleInputChange,
+                      required: true
+                    })
+                  ]),
+
+                  React.createElement('div', { 
+                    key: 'stock',
+                    className: 'form-group' 
+                  }, [
+                    React.createElement('label', { 
+                      key: 'label',
+                      htmlFor: 'stock' 
+                    }, 'Stock'),
+                    React.createElement('input', {
+                      key: 'input',
+                      type: 'number',
+                      id: 'stock',
+                      name: 'stock',
+                      value: formData.stock,
+                      onChange: handleInputChange
+                    })
+                  ]),
+
+                  // Categorías
+                  React.createElement('div', { 
+                    key: 'categorias',
+                    className: 'form-group form-group-full' 
+                  }, [
+                    React.createElement('label', { key: 'label' }, 'Categorías'),
+                    React.createElement('div', { 
+                      key: 'select-multiple',
+                      className: 'select-multiple' 
+                    }, 
+                      categorias.length > 0 ? 
+                        categorias.map(categoria => 
+                          React.createElement('div', { 
+                            key: categoria.id,
+                            className: 'checkbox-item' 
+                          }, [
+                            React.createElement('label', { key: 'label' }, [
+                              React.createElement('input', {
+                                key: 'checkbox',
+                                type: 'checkbox',
+                                checked: formData.categorias.includes(categoria.id),
+                                onChange: (e) => {
+                                  const isChecked = e.target.checked;
+                                  const nuevasCategorias = isChecked
+                                    ? [...formData.categorias, categoria.id]
+                                    : formData.categorias.filter(id => id !== categoria.id);
+                                  handleSelectChange('categorias', nuevasCategorias);
+                                }
+                              }),
+                              categoria.nombre
+                            ])
+                          ])
+                        ) : 
+                        React.createElement('p', { 
+                          key: 'empty',
+                          className: 'help-text' 
+                        }, 'No hay categorías disponibles')
+                    )
+                  ]),
+
+                  // Colecciones  
+                  React.createElement('div', { 
+                    key: 'colecciones',
+                    className: 'form-group form-group-full' 
+                  }, [
+                    React.createElement('label', { key: 'label' }, 'Colecciones'),
+                    React.createElement('div', { 
+                      key: 'select-multiple',
+                      className: 'select-multiple' 
+                    }, 
+                      colecciones.length > 0 ? 
+                        colecciones.map(coleccion => 
+                          React.createElement('div', { 
+                            key: coleccion.id,
+                            className: 'checkbox-item' 
+                          }, [
+                            React.createElement('label', { key: 'label' }, [
+                              React.createElement('input', {
+                                key: 'checkbox',
+                                type: 'checkbox',
+                                checked: formData.colecciones.includes(coleccion.id),
+                                onChange: (e) => {
+                                  const isChecked = e.target.checked;
+                                  const nuevasColecciones = isChecked
+                                    ? [...formData.colecciones, coleccion.id]
+                                    : formData.colecciones.filter(id => id !== coleccion.id);
+                                  handleSelectChange('colecciones', nuevasColecciones);
+                                }
+                              }),
+                              coleccion.nombre
+                            ])
+                          ])
+                        ) : 
+                        React.createElement('p', { 
+                          key: 'empty',
+                          className: 'help-text' 
+                        }, 'No hay colecciones disponibles')
+                    )
+                  ])
+                ])
+              ]),
+
+              // Tab Debug
+              activeTab === 'debug' && React.createElement('div', { 
+                key: 'tab-debug',
+                className: 'tab-content' 
+              }, [
+                React.createElement('h3', { key: 'title' }, 'Información de Debug'),
+                React.createElement('div', { key: 'debug-data' }, [
+                  React.createElement('h4', { key: 'categorias-title' }, `Categorías cargadas: ${categorias.length}`),
+                  React.createElement('pre', { 
+                    key: 'categorias-data',
+                    style: { fontSize: '12px', background: '#f8f9fa', padding: '10px' }
+                  }, JSON.stringify(categorias, null, 2)),
+                  
+                  React.createElement('h4', { key: 'colecciones-title' }, `Colecciones cargadas: ${colecciones.length}`),
+                  React.createElement('pre', { 
+                    key: 'colecciones-data',
+                    style: { fontSize: '12px', background: '#f8f9fa', padding: '10px' }
+                  }, JSON.stringify(colecciones, null, 2)),
+                  
+                  React.createElement('h4', { key: 'formdata-title' }, 'Datos del formulario:'),
+                  React.createElement('pre', { 
+                    key: 'formdata-data',
+                    style: { fontSize: '12px', background: '#f8f9fa', padding: '10px' }
+                  }, JSON.stringify(formData, null, 2))
+                ])
+              ])
+            ])
+          ]);
+        };
+
+        // App principal
+        const App = () => {
+          const [showForm, setShowForm] = useState(true);
+
+          return React.createElement('div', {}, [
+            showForm && React.createElement(ProductosForm, {
+              key: 'form',
+              onCancel: () => setShowForm(false),
+              onSuccess: (data) => {
+                console.log('Éxito:', data);
+                alert('Operación exitosa');
+              }
+            }),
+            
+            !showForm && React.createElement('div', {
+              key: 'show-form',
+              style: { textAlign: 'center', padding: '50px' }
+            }, [
+              React.createElement('h2', { key: 'title' }, 'Formulario cerrado'),
+              React.createElement('button', {
+                key: 'button',
+                className: 'btn btn-primary',
+                onClick: () => setShowForm(true)
+              }, 'Mostrar formulario')
+            ])
+          ]);
+        };
+
+        // Funciones de utilidad
+        function updateDebugInfo(text) {
+          const debugDiv = document.getElementById('debug-info');
+          if (debugDiv) {
+            debugDiv.textContent = text;
+            debugDiv.style.display = 'block';
+          }
+        }
+
+        function testAPIs() {
+          fetch('/stadium/api-categorias-simple.php')
+            .then(r => r.json())
+            .then(data => {
+              console.log('Categorias:', data);
+              return fetch('/stadium/api-colecciones-simple.php');
+            })
+            .then(r => r.json())
+            .then(data => {
+              console.log('Colecciones:', data);
+              updateDebugInfo('APIs probadas - ver consola');
+            })
+            .catch(err => {
+              console.error('Error:', err);
+              updateDebugInfo('Error probando APIs: ' + err.message);
+            });
+        }
+
+        function testLogin() {
+          fetch('/stadium/login-simple.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'test@test.com', password: 'test' })
+          })
+          .then(r => r.json())
+          .then(data => {
+            console.log('Login:', data);
+            updateDebugInfo('Login simulado - ver consola');
+          })
+          .catch(err => {
+            console.error('Error:', err);
+            updateDebugInfo('Error en login: ' + err.message);
+          });
+        }
+
+        function clearConsole() {
+          console.clear();
+          updateDebugInfo('Console limpiado');
+        }
+
+        // Renderizar la aplicación
+        ReactDOM.render(React.createElement(App), document.getElementById('app-root'));
+    </script>
+</body>
+</html>

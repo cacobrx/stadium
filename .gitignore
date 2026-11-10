@@ -1,0 +1,59 @@
+# Archivos de configuración sensibles
+config/database.php
+
+# Logs
+*.log
+error.log
+
+# Archivos temporales
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Archivos de respaldo
+*.bak
+*.backup
+*~
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de sistema
+.htaccess
+.env
+# ── Credenciales (usar los *.example.php como plantilla) ──
+config/mail.php
+config/mercadopago.php
+config/correoargentino.php
+token.sh
+
+# ── Contenido subido / temporal / legado ──
+uploads/
+tmp/
+log/
+web-old/
+api/pedidos/*.log
+
+# ── Scripts de test/debug con credenciales hardcodeadas ──
+api/pedidos/crearx1.php
+api/pedidos/crear_debug.php
+api/pedidos/crear copy.php
+check-images.php
+debug-session.php
+login-simple.php
+login-test.php
+test-api-debug.php
+test-api-productos.php
+test-login.php
+test-password.php
+test-save-producto.php
+test.php
+
+# Certificados AFIP
+config/certs/
+*.pem
+*.key

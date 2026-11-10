@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test — Crear Presupuesto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .card { max-width: 780px; margin: 2rem auto; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 6px; font-size: .85rem; max-height: 320px; overflow: auto; }
+        .badge-ok  { background: #198754; }
+        .badge-err { background: #dc3545; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <strong>Test — POST /api/presupuestos/crear.php</strong>
+        </div>
+        <div class="card-body">
+
+            <!-- Contacto -->
+            <h6 class="text-muted mb-2">Contacto</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre *</label>
+                    <input id="c_nombre" class="form-control" value="Lucas Bragagnolo">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input id="c_email" class="form-control" value="lucasbragagnolo6@gmail.com">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Teléfono</label>
+                    <input id="c_telefono" class="form-control" value="+542325420041">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Empresa</label>
+                    <input id="c_empresa" class="form-control" value="Club Alvarado">
+                </div>
+            </div>
+
+            <!-- Proyecto -->
+            <h6 class="text-muted mb-2">Proyecto</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tipo de Proyecto</label>
+                    <input id="p_tipo" class="form-control" value="complejo">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ubicación</label>
+                    <input id="p_ubicacion" class="form-control" value="Buenos Aires, Argentina">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Presupuesto estimado</label>
+                    <input id="p_presupuesto" class="form-control" value="consultar">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Plazo</label>
+                    <input id="p_plazo" class="form-control" value="flexible">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Requerimientos</label>
+                    <textarea id="p_requerimientos" class="form-control" rows="3">Estas son las caracteristicas</textarea>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <h6 class="text-muted mb-2">Productos (equipamiento)</h6>
+            <div id="productos-lista" class="mb-2"></div>
+            <button class="btn btn-sm btn-outline-secondary mb-3" onclick="agregarProducto()">+ Agregar producto</button>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="enviar()">Enviar</button>
+                <button class="btn btn-outline-secondary" onclick="verJson()">Ver JSON generado</button>
+                <button class="btn btn-outline-danger" onclick="limpiarRespuesta()">Limpiar</button>
+            </div>
+
+            <!-- Respuesta -->
+            <div id="resp-area" class="mt-4 d-none">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <strong>Respuesta</strong>
+                    <span id="resp-badge" class="badge">—</span>
+                    <span id="resp-status" class="text-muted small"></span>
+                </div>
+                <pre id="resp-body"></pre>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// Productos iniciales de ejemplo
+let productos = [
+    { id: 5, nombre: "Soporte Stadium PRO 3200", categoria: "Jirafas", cantidad: 1 },
+    { id: 6, nombre: "Soporte Stadium LNB",      categoria: "Jirafas", cantidad: 1 }
+];
+
+function renderProductos() {
+    const cont = document.getElementById('productos-lista');
+    cont.innerHTML = productos.map((p, i) => `
+        <div class="row g-2 align-items-end mb-1 prod-row" data-i="${i}">
+            <div class="col-md-1">
+                <label class="form-label">ID</label>
+                <input type="number" class="form-control form-control-sm" value="${p.id}"
+                    onchange="productos[${i}].id = parseInt(this.value)||0">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control form-control-sm" value="${p.nombre}"
+                    onchange="productos[${i}].nombre = this.value">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                <input type="text" class="form-control form-control-sm" value="${p.categoria}"
+                    onchange="productos[${i}].categoria = this.value">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Cantidad</label>
+                <input type="number" min="1" class="form-control form-control-sm" value="${p.cantidad}"
+                    onchange="productos[${i}].cantidad = parseInt(this.value)||1">
+            </div>
+            <div class="col-md-1 text-end">
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${i})">✕</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function agregarProducto() {
+    productos.push({ id: 0, nombre: '', categoria: '', cantidad: 1 });
+    renderProductos();
+}
+
+function eliminarProducto(i) {
+    productos.splice(i, 1);
+    renderProductos();
+}
+
+function buildPayload() {
+    return {
+        contacto: {
+            nombre:   document.getElementById('c_nombre').value.trim(),
+            email:    document.getElementById('c_email').value.trim(),
+            telefono: document.getElementById('c_telefono').value.trim(),
+            empresa:  document.getElementById('c_empresa').value.trim()
+        },
+        proyecto: {
+            tipoProyecto:    document.getElementById('p_tipo').value.trim(),
+            ubicacion:       document.getElementById('p_ubicacion').value.trim(),
+            presupuesto:     document.getElementById('p_presupuesto').value.trim(),
+            plazo:           document.getElementById('p_plazo').value.trim(),
+            requerimientos:  document.getElementById('p_requerimientos').value.trim()
+        },
+        productos: productos.map(p => ({
+            id:       p.id,
+            nombre:   p.nombre,
+            categoria: p.categoria,
+            cantidad: p.cantidad
+        }))
+    };
+}
+
+function verJson() {
+    mostrarRespuesta(null, JSON.stringify(buildPayload(), null, 2));
+}
+
+async function enviar() {
+    const payload = buildPayload();
+    const btn = document.querySelector('button.btn-primary');
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    try {
+        const res = await fetch('./crear.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+        let pretty;
+        try { pretty = JSON.stringify(JSON.parse(text), null, 2); }
+        catch { pretty = text; }
+        mostrarRespuesta(res.status, pretty);
+    } catch (err) {
+        mostrarRespuesta(null, 'Error de red: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar';
+    }
+}
+
+function mostrarRespuesta(status, body) {
+    const area   = document.getElementById('resp-area');
+    const badge  = document.getElementById('resp-badge');
+    const stEl   = document.getElementById('resp-status');
+    const bodyEl = document.getElementById('resp-body');
+
+    area.classList.remove('d-none');
+    bodyEl.textContent = body;
+
+    if (status === null) {
+        badge.className = 'badge bg-secondary'; badge.textContent = 'JSON';
+        stEl.textContent = '';
+    } else if (status >= 200 && status < 300) {
+        badge.className = 'badge badge-ok'; badge.textContent = status + ' OK';
+        stEl.textContent = '';
+    } else {
+        badge.className = 'badge badge-err'; badge.textContent = status + ' Error';
+        stEl.textContent = '';
+    }
+}
+
+function limpiarRespuesta() {
+    document.getElementById('resp-area').classList.add('d-none');
+}
+
+// Inicializar
+renderProductos();
+</script>
+</body>
+</html>

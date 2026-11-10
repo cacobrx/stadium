@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test JS</title></head>
+<body>
+<h1>Test</h1>
+<button id="testBtn">TEST</button>
+<div id="output"></div>
+
+<script>
+console.log('Script iniciado');
+
+window.addEventListener('load', function() {
+    console.log('Window loaded');
+    document.getElementById('output').innerHTML = 'Página cargada OK';
+});
+
+document.getElementById('testBtn').addEventListener('click', function() {
+    alert('Botón funciona!');
+    console.log('Click detectado');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Completo - Stadium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="p-4">
+    <div class="container">
+        <h1>🧪 Test Completo del Sistema Stadium</h1>
+        
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>1. Autenticación</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary w-100" onclick="doLogin()">Hacer Login</button>
+                        <div id="loginStatus" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>2. Test APIs</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-success w-100" onclick="testAPIs()" disabled id="testAPIsBtn">Test APIs</button>
+                        <div id="apisStatus" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>3. Test Guardado</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-warning w-100" onclick="testSave()" disabled id="testSaveBtn">Test Guardado</button>
+                        <div id="saveStatus" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Resultado Final</h5>
+                </div>
+                <div class="card-body">
+                    <div id="finalResult">Ejecuta los tests en orden...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="login-simple.php" class="btn btn-primary me-2">Ir al Login</a>
+            <a href="pages/articulos.php" class="btn btn-success">Ir a Artículos</a>
+        </div>
+    </div>
+
+    <script>
+        let isLoggedIn = false;
+        let apisWorking = false;
+
+        async function doLogin() {
+            const statusDiv = document.getElementById('loginStatus');
+            statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Haciendo login...';
+            
+            try {
+                const response = await fetch('login-simple.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'email=gustavo.bragagnolo@gmail.com&password=56547077'
+                });
+                
+                if (response.redirected || response.status === 200) {
+                    statusDiv.innerHTML = '<div class="alert alert-success">✅ Login exitoso</div>';
+                    isLoggedIn = true;
+                    document.getElementById('testAPIsBtn').disabled = false;
+                } else {
+                    statusDiv.innerHTML = '<div class="alert alert-danger">❌ Error en login</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testAPIs() {
+            const statusDiv = document.getElementById('apisStatus');
+            statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Probando APIs...';
+            
+            try {
+                // Test productos API
+                const response = await fetch('./api/productos.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `<div class="alert alert-success">✅ APIs funcionando<br>Productos: ${data.productos.length}</div>`;
+                    apisWorking = true;
+                    document.getElementById('testSaveBtn').disabled = false;
+                } else {
+                    statusDiv.innerHTML = `<div class="alert alert-danger">❌ Error API: ${data.error}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testSave() {
+            const statusDiv = document.getElementById('saveStatus');
+            statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Probando guardado...';
+            
+            const productData = {
+                sku: 'TEST-' + Date.now(),
+                nombre: 'Producto Test',
+                descripcion: 'Producto de prueba desde test',
+                precio: 99.99,
+                stock: 10,
+                esta_activo: 1,
+                destacado: 0
+            };
+            
+            try {
+                const response = await fetch('./api/productos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `<div class="alert alert-success">✅ Guardado exitoso<br>ID: ${data.id}</div>`;
+                    document.getElementById('finalResult').innerHTML = `
+                        <div class="alert alert-success">
+                            <h4>🎉 ¡Sistema Funcionando Completamente!</h4>
+                            <p>Todos los tests pasaron exitosamente. El sistema CRUD de artículos está listo para usar.</p>
+                            <a href="pages/articulos.php" class="btn btn-success">Ir a Artículos</a>
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `<div class="alert alert-danger">❌ Error guardado: ${data.error}</div>`;
+                    document.getElementById('finalResult').innerHTML = `
+                        <div class="alert alert-warning">
+                            <h4>⚠️ Problema Detectado</h4>
+                            <p>Error en el guardado: ${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
+                document.getElementById('finalResult').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4>❌ Error de Conexión</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
