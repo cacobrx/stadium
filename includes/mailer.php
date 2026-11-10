@@ -107,3 +107,54 @@ function enviarCorreo(string $para, string $asunto, string $html, ?string $reply
         return ['ok' => false, 'error' => $err];
     }
 }
+
+// ── HTML del aviso de nuevo presupuesto ─────────────────────────────────────
+function htmlPresupuestoWeb(array $d): string {
+    $e = fn($v) => nl2br(htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'));
+    $fila = function (string $label, $valor) use ($e) {
+        if ($valor === null || $valor === '') {
+            return '';
+        }
+        return '<tr><td style="padding:6px 10px;background:#f5f5f5;font-weight:bold;width:170px;vertical-align:top;">'
+             . $e($label) . '</td><td style="padding:6px 10px;">' . $e($valor) . '</td></tr>';
+    };
+
+    $filasProductos = '';
+    foreach ($d['productos'] as $p) {
+        $filasProductos .= '<tr>'
+            . '<td style="padding:6px 10px;border-bottom:1px solid #eee;">' . $e($p['nombre'] ?? ('Artículo #' . ($p['id'] ?? ''))) . '</td>'
+            . '<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;">' . $e(intval($p['cantidad'] ?? 1)) . '</td>'
+            . '</tr>';
+    }
+
+    $fecha = $d['fecha'] ? date('d/m/Y', strtotime($d['fecha'])) : '';
+
+    return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:650px;">'
+        . '<h2 style="margin:0 0 12px;">Nuevo pedido de presupuesto</h2>'
+        . '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:100%;margin-bottom:18px;border:1px solid #ddd;">'
+        . $fila('Nro. presupuesto', $d['nro_presupuesto'])
+        . $fila('Fecha', $fecha)
+        . $fila('Origen', $d['origen'])
+        . '</table>'
+        . '<h3 style="margin:0 0 8px;">Contacto</h3>'
+        . '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:100%;margin-bottom:18px;border:1px solid #ddd;">'
+        . $fila('Nombre', $d['nombre'])
+        . $fila('Empresa', $d['empresa'])
+        . $fila('Teléfono', $d['telefono'])
+        . $fila('Email', $d['email'])
+        . '</table>'
+        . '<h3 style="margin:0 0 8px;">Proyecto</h3>'
+        . '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:100%;margin-bottom:18px;border:1px solid #ddd;">'
+        . $fila('Tipo de proyecto', $d['tipoProyecto'])
+        . $fila('Ubicación', $d['ubicacion'])
+        . $fila('Plazo', $d['plazo'])
+        . $fila('Requerimientos', $d['requerimientos'])
+        . '</table>'
+        . '<h3 style="margin:0 0 8px;">Productos</h3>'
+        . '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:100%;border:1px solid #ddd;">'
+        . '<tr><th style="padding:6px 10px;background:#222;color:#fff;text-align:left;">Producto</th>'
+        . '<th style="padding:6px 10px;background:#222;color:#fff;width:90px;">Cantidad</th></tr>'
+        . $filasProductos
+        . '</table>'
+        . '</div>';
+}

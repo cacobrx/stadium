@@ -2,7 +2,8 @@
 // api/configuracion.php — Configuración general (tabla configuracion, clave/valor)
 // GET            → devuelve la configuración (la clave SMTP nunca se devuelve)
 // PUT            → guarda valores { clave: valor, ... }; mail_password vacío = no se modifica
-// POST action=test_mail → envía un correo de prueba con los datos del formulario
+// POST action=test_mail        → envía un correo de prueba con los datos del formulario
+// POST action=test_presupuesto → envía el aviso de presupuesto (igual a api/presupuestos/crear.php) con datos de ejemplo
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/mailer.php';
@@ -78,7 +79,8 @@ try {
         responder(['success' => true]);
     }
 
-    if ($method === 'POST' && ($body['action'] ?? '') === 'test_mail') {
+    $action = $body['action'] ?? '';
+    if ($method === 'POST' && in_array($action, ['test_mail', 'test_presupuesto'], true)) {
         $para = trim($body['para'] ?? '');
         if (!filter_var($para, FILTER_VALIDATE_EMAIL)) {
             responder(['success' => false, 'error' => 'Email de destino inválido'], 422);
@@ -99,9 +101,46 @@ try {
                 $cfg[$campo] = $valores[$clave];
             }
         }
-        $html = '<p>Este es un correo de prueba enviado desde <strong>Stadium</strong>.</p>'
-              . '<p>Si lo recibiste, la configuración de correo funciona correctamente.</p>';
-        $r = enviarCorreo($para, 'Prueba de correo - Stadium', $html, null, null, $cfg);
+
+        if ($action === 'test_presupuesto') {
+            // Mismo correo que envía api/presupuestos/crear.php, con datos de ejemplo
+            $origen = 1;
+            $origen_desc = '';
+            $stmt = $conn->prepare("SELECT descripcion FROM tablas WHERE codtab = 'ORI' AND valor = ? LIMIT 1");
+            $stmt->bind_param('i', $origen);
+            $stmt->execute();
+            $stmt->bind_result($origen_desc);
+            $stmt->fetch();
+            $stmt->close();
+
+            $nro = 'PRES-' . date('Y') . '-PRUEBA';
+            $cli_nombre = 'Cliente de Prueba';
+            $cli_email  = $para;
+            $html = htmlPresupuestoWeb([
+                'nro_presupuesto' => $nro,
+                'fecha'           => date('Y-m-d'),
+                'origen'          => $origen_desc ?: (string) $origen,
+                'nombre'          => $cli_nombre,
+                'empresa'         => 'Empresa Demo S.A.',
+                'telefono'        => '+54 11 1234-5678',
+                'email'           => $cli_email,
+                'tipoProyecto'    => 'Cancha de fútbol 5',
+                'ubicacion'       => 'Buenos Aires, Argentina',
+                'requerimientos'  => "Este es un presupuesto de PRUEBA enviado desde Configuración del sistema.\nNo se registró en la base de datos.",
+                'plazo'           => '30 días',
+                'productos'       => [
+                    ['id' => 1, 'nombre' => 'Arco de fútbol 5 reglamentario', 'cantidad' => 2],
+                    ['id' => 2, 'nombre' => 'Red para arco de fútbol 5', 'cantidad' => 2],
+                    ['id' => 3, 'nombre' => 'Pelota de fútbol N° 5', 'cantidad' => 10],
+                ],
+            ]);
+            $asunto = "Nuevo presupuesto {$nro} - {$cli_nombre}";
+            $r = enviarCorreo($para, $asunto, $html, $cli_email, $cli_nombre, $cfg);
+        } else {
+            $html = '<p>Este es un correo de prueba enviado desde <strong>Stadium</strong>.</p>'
+                  . '<p>Si lo recibiste, la configuración de correo funciona correctamente.</p>';
+            $r = enviarCorreo($para, 'Prueba de correo - Stadium', $html, null, null, $cfg);
+        }
         responder($r['ok'] ? ['success' => true] : ['success' => false, 'error' => $r['error']]);
     }
 

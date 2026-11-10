@@ -118,6 +118,9 @@ requireAuth();
                             <button type="button" class="btn btn-outline-secondary" onclick="probar()">
                                 <i class="bi bi-send"></i> Enviar correo de prueba
                             </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="probar('test_presupuesto')">
+                                <i class="bi bi-file-earmark-text"></i> Enviar presupuesto de prueba
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -186,9 +189,11 @@ requireAuth();
             }
         }
 
-        async function probar() {
+        async function probar(action = 'test_mail') {
+            const esPresupuesto = action === 'test_presupuesto';
             const { value: para } = await Swal.fire({
-                title: 'Enviar correo de prueba',
+                title: esPresupuesto ? 'Enviar presupuesto de prueba' : 'Enviar correo de prueba',
+                text: esPresupuesto ? 'Se envía el mismo aviso que genera un presupuesto web, con datos de ejemplo (no se guarda nada).' : undefined,
                 input: 'email',
                 inputLabel: 'Destinatario',
                 inputValue: document.getElementById('mail_presupuestos_destino').value,
@@ -204,12 +209,12 @@ requireAuth();
                 const res = await fetch('./api/configuracion.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'test_mail', para, config: leerFormulario() }),
+                    body: JSON.stringify({ action, para, config: leerFormulario() }),
                     credentials: 'same-origin'
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire({ icon: 'success', title: 'Correo enviado', text: `Se envió un correo de prueba a ${para}.`, confirmButtonColor: '#0d6efd' });
+                    Swal.fire({ icon: 'success', title: 'Correo enviado', text: esPresupuesto ? `Se envió un presupuesto de prueba a ${para}.` : `Se envió un correo de prueba a ${para}.`, confirmButtonColor: '#0d6efd' });
                 } else {
                     Swal.fire({ icon: 'error', title: 'No se pudo enviar', text: data.error || 'Error desconocido', confirmButtonColor: '#0d6efd' });
                 }
